@@ -9,8 +9,8 @@ COPY src/ExampleCalculationService ./src/ExampleCalculationService
 COPY pyproject.toml ./
 COPY README.md ./
 COPY requirements.txt ./
-COPY LineCode.dss ./
 COPY XFMRCode.dss ./
+COPY LineCode.dss ./
 RUN pip install -r requirements.txt
 RUN pip install ./
 

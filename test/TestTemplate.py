@@ -27,16 +27,43 @@ class Test(unittest.TestCase):
         # Arrange
         service = CalculationServiceEConnection()
         service.influx_connector = InfluxDBMock()
-        pv_dispatch_params = {}
-        pv_dispatch_params["PV_Dispatch"] = [1.0, 2.0]
+        params = {}
+        params['EConnection/aggregated_active_power/7415cddb-b735-4646-b772-47f101b5c7a8'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_active_power/fd7fc047-30b1-48e3-99d9-1bc882772170'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_active_power/8f155685-c164-4d0c-ad3f-3419f4b97c82'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_active_power/1f776d2a-ea5b-43e1-94a1-aac7e8381e41'] = [3000, 3000, 3000]
+        params['EConnection/aggregated_active_power/8e43e731-e4a4-46ac-a5b0-7aec5031878b'] = [3000, 3000, 3000]
+        params['EConnection/aggregated_active_power/f10ff819-1d81-4cc7-82dc-b02ffbc60bfc'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_active_power/221c77de-74f8-4293-bb4e-2dd39dee1acd'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_active_power/18f85d6d-6051-4cdf-ab4c-e80a404e3c74'] = [3000, 3000, 3000]
+        params['EConnection/aggregated_active_power/891c0abb-f6e8-4eb3-9045-d6c87120d281'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_active_power/a6c6d5d0-ca19-4579-85f9-8fd99f77aaf3'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_active_power/e69bae01-d2db-4829-bbb7-71148ead969b'] = [1000, 3000, 2000]
+        params['EConnection/aggregated_active_power/c569d7a1-d2d7-4c05-8e31-c641ea48e9ff'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_active_power/b2c3bb3b-0b40-4bc2-975c-cd648fe03065'] = [1000, 1000, 1000]
+
+        params['EConnection/aggregated_reactive_power/7415cddb-b735-4646-b772-47f101b5c7a8'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_reactive_power/fd7fc047-30b1-48e3-99d9-1bc882772170'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_reactive_power/8f155685-c164-4d0c-ad3f-3419f4b97c82'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_reactive_power/1f776d2a-ea5b-43e1-94a1-aac7e8381e41'] = [3000, 3000, 3000]
+        params['EConnection/aggregated_reactive_power/8e43e731-e4a4-46ac-a5b0-7aec5031878b'] = [3000, 3000, 3000]
+        params['EConnection/aggregated_reactive_power/f10ff819-1d81-4cc7-82dc-b02ffbc60bfc'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_reactive_power/221c77de-74f8-4293-bb4e-2dd39dee1acd'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_reactive_power/18f85d6d-6051-4cdf-ab4c-e80a404e3c74'] = [3000, 3000, 3000]
+        params['EConnection/aggregated_reactive_power/891c0abb-f6e8-4eb3-9045-d6c87120d281'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_reactive_power/a6c6d5d0-ca19-4579-85f9-8fd99f77aaf3'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_reactive_power/e69bae01-d2db-4829-bbb7-71148ead969b'] = [1000, 3000, 2000]
+        params['EConnection/aggregated_reactive_power/c569d7a1-d2d7-4c05-8e31-c641ea48e9ff'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_reactive_power/b2c3bb3b-0b40-4bc2-975c-cd648fe03065'] = [1000, 1000, 1000]
+
         service.init_calculation_service(energy_system)
 
         # Execute
-        ret_val = service.load_flow_current_step(None, datetime(2024,1,1), TimeStepInformation(1,2), "test-id", energy_system)
+        ret_val = service.load_flow_current_step(params, datetime(2024,1,1), TimeStepInformation(1,2), "test-id", energy_system)
 
         # # Implement
-        # self.assertEqual(ret_val["EConnectionDispatch"], 3.0)
-        # self.assertListEqual([SimulaitonDataPoint("EConnectionDispatch", datetime(2024,1,1), 3.0, "test-id")], service.influx_connector.data_points)
+        # self.assertEqual(ret_val["EConnectionDispatch"], 3000)
+        # self.assertListEqual([SimulaitonDataPoint("EConnectionDispatch", datetime(2024,1,1), 3000, "test-id")], service.influx_connector.data_points)
 
 if __name__ == '__main__':
     unittest.main()

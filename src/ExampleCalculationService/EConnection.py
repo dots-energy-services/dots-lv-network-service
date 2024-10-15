@@ -9,6 +9,7 @@ from dots_infrastructure.Logger import LOGGER
 from esdl import EnergySystem
 
 from dss import DSS as dss_engine
+import math
 import time
 
 class CalculationServiceEConnection(HelicsSimulationExecutor):
@@ -17,10 +18,14 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         super().__init__()
 
         subscriptions_values = [
-            SubscriptionDescription(esdl_type="PVInstallation", 
-                                    input_name="PV_Dispatch", 
+            SubscriptionDescription(esdl_type="EConnection",
+                                    input_name="aggregated_active_power",
                                     input_unit="W", 
-                                    input_type=h.HelicsDataType.DOUBLE)
+                                    input_type=h.HelicsDataType.VECTOR),
+            SubscriptionDescription(esdl_type="EConnection",
+                                    input_name="aggregated_reactive_power",
+                                    input_unit="W",
+                                    input_type=h.HelicsDataType.VECTOR)
         ]
 
         publication_values = [
@@ -40,7 +45,7 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
             wait_for_current_time_update=False, 
             terminate_on_error=True, 
             calculation_name="load_flow_current_step",
-            inputs=[],
+            inputs=subscriptions_values,
             outputs=[],
             calculation_function=self.load_flow_current_step
         )
@@ -59,6 +64,8 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         LOGGER.info("init calculation service")
         for esdl_id in self.simulator_configuration.esdl_ids:
             LOGGER.info(f"Example of iterating over esdl ids: {esdl_id}")
+
+        self.ems_list = []
 
         LOGGER.info('Create Main.dss file')
         f = open("Main.dss", "w+")
@@ -132,6 +139,7 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
                 for b_a in a.asset:
                     if isinstance(b_a, esdl.EConnection):
                         Busconname = port.connectedTo[0].energyasset
+                        self.ems_list.append(b_a.id)
                     if isinstance(b_a, esdl.ElectricityDemand):
                         # if (len(b_a.port)) % 3 == 0:
                         for port in b_a.port:
@@ -158,23 +166,147 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
 
         f.close()
 
+        print(self.ems_list)
+
         f = open("Main.dss", 'r')
         file_contents = f.read()
-        print(file_contents)
+        # print(file_contents)
 
 
     def load_flow_current_step(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
+        # START user calc
+        LOGGER.info("calculation 'load_flow_current_step' started")
+
+        # TODO: Receive data from all ems models
+
+
+        # print(param_dict['EConnection/active_power/7415cddb-b735-4646-b772-47f101b5c7a8'])
+        # print(param_dict['EConnection/active_power/{0}'])
+
+        for ems in self.ems_list:
+            # print(str(ems))
+            print('EConnection/aggregated_active_power/{0}'.format(ems))
+
+        print(len(self.ems_list))
+
         # ------------------
         # OpenDSS simulation
         # ------------------
         # Define and compile network
         dss_engine.Text.Command = f"compile Main.dss"
 
+        # TODO: Add and process imported data from ems
+
+        # start_time = time.time()
+        totalactiveload = 0
+        totalreactiveload = 0
+        # Receive load values from EMS and adjust load values:
+        loadnumber = dss_engine.ActiveCircuit.Loads.First
+        # print('aggregated_active_power_objects: ', aggregated_active_power_objects)
+        connection = 0
+        while connection < len(self.ems_list):
+            # Determine the number of phases for the current connection
+            num_phases = len(param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])])
+            print('connection:', self.ems_list[connection], 'has {0} phases'.format(num_phases))
+            # Loop through phases for the current connection
+            phase = 0
+            while phase < num_phases:
+                dss_engine.ActiveCircuit.Loads.kW = param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
+                # print(loadnumber, connection, phase, 'Active power', param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase])# * 1e-3)
+                totalactiveload += param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
+                dss_engine.ActiveCircuit.Loads.kvar = param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
+                # print(loadnumber, connection, phase, 'Reactive power', param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase])# * 1e-3)
+                totalreactiveload += param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
+                # print('loadnummer=', loadnumber)
+                loadnumber = dss_engine.ActiveCircuit.Loads.Next
+                phase += 1
+            connection += 1
+
+            print(totalactiveload)
+            print(totalreactiveload)
+
+        # Solve load flow calculation
+        dss_engine.ActiveCircuit.Solution.Solve()
+
+        # # solve_time = time.time() - load_time
+        # LOGGER.info("Solve load flow calculation, took: ", {time.time() - start_time})
+        # start_time = time.time()
+
+        # Process results
+        BusNames = dss_engine.ActiveCircuit.AllBusNames
+        LineNames = dss_engine.ActiveCircuit.Lines.AllNames
+        BusVoltageMag = []
+        LineCurrentMag = []
+        LineCurrentAng = []
+        TotalLineCurrentMag = []
+        TotalLineCurrentLim = []
+        TransformerPower = []
+        TransformerPowerLim = []
+
+        # Phase voltage magnitudes for each bus:
+        for i in range(len(dss_engine.ActiveCircuit.AllBusVmag)):
+            BusVoltageMag.append(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
+            print(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
+
+        # Phase current magnitudes and angles for each line:
+        for l in range(dss_engine.ActiveCircuit.Lines.Count):
+            dss_engine.ActiveCircuit.SetActiveElement(
+                'Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
+            # print('Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
+            Total_line_current = 0
+            for i in range(1, 4):
+                LineCurrentMag.append(
+                    round(dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2], 2))
+                LineCurrentAng.append(
+                    round(dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2 + 1], 2))
+                Total_line_current += round(dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2],
+                                            2)
+            TotalLineCurrentMag.append(Total_line_current)
+            TotalLineCurrentLim.append(float(dss_engine.ActiveCircuit.ActiveCktElement.NormalAmps))
+
+        # # print(dss_engine.ActiveCircuit.Lines.AllNames)
+        # print(dss_engine.ActiveCircuit.AllNodeNames)
+        # print(BusVoltageMag)
+        # print(dss_engine.ActiveCircuit.Lines.AllNames)
+        # print((TotalLineCurrentMag))
+
+        # Apparent power for each transformer:
+        dss_engine.ActiveCircuit.Transformers.First
+        for t in range(dss_engine.ActiveCircuit.Transformers.Count):
+            dss_engine.ActiveCircuit.SetActiveElement(
+                'Transformer.{0}'.format(dss_engine.ActiveCircuit.Transformers.AllNames[t]))
+            TransformerPower.append(round(math.sqrt(dss_engine.ActiveCircuit.ActiveElement.TotalPowers[0] ** 2 +
+                                                    dss_engine.ActiveCircuit.ActiveElement.TotalPowers[1] ** 2), 2))
+
+            TransformerPowerLim.append((dss_engine.ActiveCircuit.Transformers.kVA))
+            dss_engine.ActiveCircuit.Transformers.Next
+            print(TransformerPower, TransformerPowerLim)
+        LineLimitNames = [x + '_limit' for x in dss_engine.ActiveCircuit.Lines.AllNames]
+        TransformerLimitNames = [x + '_limit' for x in dss_engine.ActiveCircuit.Transformers.AllNames]
+
         ret_val = {}
         # single_dispatch_value = get_single_param_with_name(param_dict, "PV_Dispatch") # returns the first value in param dict with "PV_Dispatch" in the key name
         # all_dispatch_values = get_vector_param_with_name(param_dict, "PV_Dispatch") # returns all the values as a list in param_dict with "PV_Dispatch" in the key name
         # ret_val["EConnectionDispatch"] = sum(single_dispatch_value)
         # self.influx_connector.set_time_step_data_point(esdl_id, "EConnectionDispatch", simulation_time, ret_val["EConnectionDispatch"])
+
+        time_step_nr = time_step_number.current_time_step_number
+        for d in range(len(dss_engine.ActiveCircuit.AllNodeNames)):
+            self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.AllNodeNames[d],
+                                                          time_step_nr, BusVoltageMag[d])
+        for d in range(len(dss_engine.ActiveCircuit.Lines.AllNames)):
+            self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.Lines.AllNames[d],
+                                                          time_step_nr, TotalLineCurrentMag[d])
+            self.influx_connector.set_time_step_data_point(esdl_id, LineLimitNames[d], time_step_nr,
+                                                          TotalLineCurrentLim[d])
+        for d in range(len(dss_engine.ActiveCircuit.Transformers.AllNames)):
+            self.influx_connector.set_time_step_data_point(esdl_id,
+                                                          dss_engine.ActiveCircuit.Transformers.AllNames[d],
+                                                          time_step_nr, TransformerPower[d])
+            self.influx_connector.set_time_step_data_point(esdl_id,
+                                                          TransformerLimitNames[d],
+                                                          time_step_nr, TransformerPowerLim[d])
+
         return ret_val
     
     # def e_connection_da_schedule(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):

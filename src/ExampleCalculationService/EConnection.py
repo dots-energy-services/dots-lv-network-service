@@ -246,7 +246,7 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         # Phase voltage magnitudes for each bus:
         for i in range(len(dss_engine.ActiveCircuit.AllBusVmag)):
             BusVoltageMag.append(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
-            print(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
+            # print(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
 
         # Phase current magnitudes and angles for each line:
         for l in range(dss_engine.ActiveCircuit.Lines.Count):

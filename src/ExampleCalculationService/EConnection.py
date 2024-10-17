@@ -28,13 +28,13 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
                                     input_type=h.HelicsDataType.VECTOR)
         ]
 
-        publication_values = [
-            PublicationDescription(global_flag=True, 
-                                   esdl_type="EConnection", 
-                                   output_name="EConnectionDispatch", 
-                                   output_unit="W", 
-                                   data_type=h.HelicsDataType.DOUBLE)
-        ]
+        # publication_values = [
+        #     PublicationDescription(global_flag=True,
+        #                            esdl_type="EConnection",
+        #                            output_name="EConnectionDispatch",
+        #                            output_unit="W",
+        #                            data_type=h.HelicsDataType.DOUBLE)
+        # ]
 
         e_connection_period_in_seconds = 900
 

@@ -293,19 +293,19 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         time_step_nr = time_step_number.current_time_step_number
         for d in range(len(dss_engine.ActiveCircuit.AllNodeNames)):
             self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.AllNodeNames[d],
-                                                          time_step_nr, BusVoltageMag[d])
+                                                          simulation_time, BusVoltageMag[d])
         for d in range(len(dss_engine.ActiveCircuit.Lines.AllNames)):
             self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.Lines.AllNames[d],
-                                                          time_step_nr, TotalLineCurrentMag[d])
-            self.influx_connector.set_time_step_data_point(esdl_id, LineLimitNames[d], time_step_nr,
+                                                          simulation_time, TotalLineCurrentMag[d])
+            self.influx_connector.set_time_step_data_point(esdl_id, LineLimitNames[d], simulation_time,
                                                           TotalLineCurrentLim[d])
         for d in range(len(dss_engine.ActiveCircuit.Transformers.AllNames)):
             self.influx_connector.set_time_step_data_point(esdl_id,
                                                           dss_engine.ActiveCircuit.Transformers.AllNames[d],
-                                                          time_step_nr, TransformerPower[d])
+                                                          simulation_time, TransformerPower[d])
             self.influx_connector.set_time_step_data_point(esdl_id,
                                                           TransformerLimitNames[d],
-                                                          time_step_nr, TransformerPowerLim[d])
+                                                          simulation_time, TransformerPowerLim[d])
 
         return ret_val
     

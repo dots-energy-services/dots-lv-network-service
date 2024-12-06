@@ -85,12 +85,21 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
                 import_count += 1
                 for port in a.port:
                     busTo = port.connectedTo[0].energyasset
-                f.writelines(
-                    'New circuit.{network} phases=3 pu=1.0 basekv={Uref} bus1={bus1} \n'.format(
-                        network='{0}_{1}'.format(self.network_name,import_count),
-                        Uref=a.assetType, bus1=
-                        busTo.name.split('Bus')[
-                            0]))
+                if import_count == 1:
+                    f.writelines(
+                        'New circuit.{network} phases=3 pu=1.0 basekv={Uref} bus1={bus1} \n'.format(
+                            network='{0}_{1}'.format(self.network_name,import_count),
+                            Uref=a.assetType, bus1=
+                            busTo.name.split('Bus')[
+                                0]))
+                else:
+                    f.writelines(
+                        'New Vsource.{network} phases=3 pu=1.0 basekv={Uref} bus1={bus1} \n'.format(
+                            network='{0}_{1}'.format(self.network_name, import_count),
+                            Uref=a.assetType, bus1=
+                            busTo.name.split('Bus')[
+                                0]))
+
         f.writelines('\n! Trafo XFMRCodes \n')
         f.writelines('Redirect XFMRCode.dss \n')
         f.writelines('\n! Trafo \n')

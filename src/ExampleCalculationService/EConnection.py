@@ -77,14 +77,17 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         f.writelines('\nSet DefaultBaseFrequency=50 \n')
         f.writelines('\n! Swing or Source Bar \n')
 
+        import_count = 0
+
         for a in energy_system.instance[0].area.asset:
             if isinstance(a, esdl.Import):
                 Voltagebases.append(float(a.assetType))
+                import_count += 1
                 for port in a.port:
                     busTo = port.connectedTo[0].energyasset
                 f.writelines(
                     'New circuit.{network} phases=3 pu=1.0 basekv={Uref} bus1={bus1} \n'.format(
-                        network=self.network_name,
+                        network='{0}_{1}'.format(self.network_name,import_count),
                         Uref=a.assetType, bus1=
                         busTo.name.split('Bus')[
                             0]))

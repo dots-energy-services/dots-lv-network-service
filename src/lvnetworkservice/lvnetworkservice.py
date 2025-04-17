@@ -2,17 +2,16 @@
 from datetime import datetime
 from esdl import esdl
 import helics as h
-from dots_infrastructure.DataClasses import EsdlId, HelicsCalculationInformation, PublicationDescription, SubscriptionDescription, TimeStepInformation, TimeRequestType
+from dots_infrastructure.DataClasses import EsdlId, HelicsCalculationInformation, SubscriptionDescription, TimeStepInformation
 from dots_infrastructure.HelicsFederateHelpers import HelicsSimulationExecutor
-from dots_infrastructure.CalculationServiceHelperFunctions import get_single_param_with_name, get_vector_param_with_name
 from dots_infrastructure.Logger import LOGGER
 from esdl import EnergySystem
 
 from dss import DSS as dss_engine
 import math
-import time
 
-class CalculationServiceEConnection(HelicsSimulationExecutor):
+
+class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def __init__(self):
         super().__init__()
@@ -28,14 +27,6 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
                                     input_type=h.HelicsDataType.VECTOR)
         ]
 
-        # publication_values = [
-        #     PublicationDescription(global_flag=True,
-        #                            esdl_type="EConnection",
-        #                            output_name="EConnectionDispatch",
-        #                            output_unit="W",
-        #                            data_type=h.HelicsDataType.DOUBLE)
-        # ]
-
         e_connection_period_in_seconds = 900
 
         calculation_information = HelicsCalculationInformation(
@@ -50,15 +41,6 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
             calculation_function=self.load_flow_current_step
         )
         self.add_calculation(calculation_information)
-
-        # publication_values = [
-        #     PublicationDescription(True, "EConnection", "Schedule", "W", h.HelicsDataType.VECTOR)
-        # ]
-        #
-        # e_connection_period_in_seconds = 21600
-        #
-        # calculation_information_schedule = HelicsCalculationInformation(e_connection_period_in_seconds, TimeRequestType.PERIOD, 0, False, False, True, "EConnectionSchedule", [], publication_values, self.e_connection_da_schedule)
-        # self.add_calculation(calculation_information_schedule)
 
     def init_calculation_service(self, energy_system: esdl.EnergySystem):
         LOGGER.info("init calculation service")
@@ -153,7 +135,6 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
                         Busconname = port.connectedTo[0].energyasset
                         self.ems_list.append(b_a.id)
                     if isinstance(b_a, esdl.ElectricityDemand):
-                        # if (len(b_a.port)) % 3 == 0:
                         for port in b_a.port:
                             busFrom = port.connectedTo[0].energyasset
                         f.writelines(
@@ -181,25 +162,14 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         print(self.ems_list)
 
         f = open("Main.dss", 'r')
+
         file_contents = f.read()
-        # print(file_contents)
+        LOGGER.debug(file_contents)
 
 
     def load_flow_current_step(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
         # START user calc
         LOGGER.info("calculation 'load_flow_current_step' started")
-
-        # TODO: Receive data from all ems models
-
-
-        # print(param_dict['EConnection/active_power/7415cddb-b735-4646-b772-47f101b5c7a8'])
-        # print(param_dict['EConnection/active_power/{0}'])
-
-        for ems in self.ems_list:
-            # print(str(ems))
-            print('EConnection/aggregated_active_power/{0}'.format(ems))
-
-        print(len(self.ems_list))
 
         # ------------------
         # OpenDSS simulation
@@ -207,14 +177,11 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         # Define and compile network
         dss_engine.Text.Command = f"compile Main.dss"
 
-        # TODO: Add and process imported data from ems
-
-        # start_time = time.time()
         totalactiveload = 0
         totalreactiveload = 0
         # Receive load values from EMS and adjust load values:
         loadnumber = dss_engine.ActiveCircuit.Loads.First
-        # print('aggregated_active_power_objects: ', aggregated_active_power_objects)
+
         connection = 0
         while connection < len(self.ems_list):
             # Determine the number of phases for the current connection
@@ -224,12 +191,11 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
             phase = 0
             while phase < num_phases:
                 dss_engine.ActiveCircuit.Loads.kW = param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                # print(loadnumber, connection, phase, 'Active power', param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase])# * 1e-3)
                 totalactiveload += param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
+
                 dss_engine.ActiveCircuit.Loads.kvar = param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                # print(loadnumber, connection, phase, 'Reactive power', param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase])# * 1e-3)
                 totalreactiveload += param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                # print('loadnummer=', loadnumber)
+
                 loadnumber = dss_engine.ActiveCircuit.Loads.Next
                 phase += 1
             connection += 1
@@ -240,13 +206,7 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         # Solve load flow calculation
         dss_engine.ActiveCircuit.Solution.Solve()
 
-        # # solve_time = time.time() - load_time
-        # LOGGER.info("Solve load flow calculation, took: ", {time.time() - start_time})
-        # start_time = time.time()
-
         # Process results
-        BusNames = dss_engine.ActiveCircuit.AllBusNames
-        LineNames = dss_engine.ActiveCircuit.Lines.AllNames
         BusVoltageMag = []
         LineCurrentMag = []
         LineCurrentAng = []
@@ -258,13 +218,12 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         # Phase voltage magnitudes for each bus:
         for i in range(len(dss_engine.ActiveCircuit.AllBusVmag)):
             BusVoltageMag.append(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
-            # print(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
 
         # Phase current magnitudes and angles for each line:
         for l in range(dss_engine.ActiveCircuit.Lines.Count):
             dss_engine.ActiveCircuit.SetActiveElement(
                 'Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
-            # print('Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
+            LOGGER.debug('Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
             Total_line_current = 0
             for i in range(1, 4):
                 LineCurrentMag.append(
@@ -275,12 +234,6 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
                                             2)
             TotalLineCurrentMag.append(Total_line_current)
             TotalLineCurrentLim.append(float(dss_engine.ActiveCircuit.ActiveCktElement.NormalAmps))
-
-        # # print(dss_engine.ActiveCircuit.Lines.AllNames)
-        # print(dss_engine.ActiveCircuit.AllNodeNames)
-        # print(BusVoltageMag)
-        # print(dss_engine.ActiveCircuit.Lines.AllNames)
-        # print((TotalLineCurrentMag))
 
         # Apparent power for each transformer:
         dss_engine.ActiveCircuit.Transformers.First
@@ -297,11 +250,8 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
         TransformerLimitNames = [x + '_limit' for x in dss_engine.ActiveCircuit.Transformers.AllNames]
 
         ret_val = {}
-        # single_dispatch_value = get_single_param_with_name(param_dict, "PV_Dispatch") # returns the first value in param dict with "PV_Dispatch" in the key name
-        # all_dispatch_values = get_vector_param_with_name(param_dict, "PV_Dispatch") # returns all the values as a list in param_dict with "PV_Dispatch" in the key name
-        # ret_val["EConnectionDispatch"] = sum(single_dispatch_value)
-        # self.influx_connector.set_time_step_data_point(esdl_id, "EConnectionDispatch", simulation_time, ret_val["EConnectionDispatch"])
 
+        # Write results to influxdb
         time_step_nr = time_step_number.current_time_step_number
         for d in range(len(dss_engine.ActiveCircuit.AllNodeNames)):
             self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.AllNodeNames[d],
@@ -321,12 +271,7 @@ class CalculationServiceEConnection(HelicsSimulationExecutor):
 
         return ret_val
     
-    # def e_connection_da_schedule(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
-    #     ret_val = {}
-    #     return ret_val
-
 if __name__ == "__main__":
-
-    helics_simulation_executor = CalculationServiceEConnection()
+    helics_simulation_executor = CalculationServiceLVNetwork()
     helics_simulation_executor.start_simulation()
     helics_simulation_executor.stop_simulation()

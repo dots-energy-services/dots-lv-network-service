@@ -157,15 +157,9 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         f.writelines('Set mode=snapshot\n')
         f.writelines('! Solve\n')
 
-        f.close()
-
-        print(self.ems_list)
-
-        f = open("Main.dss", 'r')
-
         file_contents = f.read()
+        f.close()
         LOGGER.debug(file_contents)
-
 
     def load_flow_current_step(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
         # START user calc
@@ -186,7 +180,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         while connection < len(self.ems_list):
             # Determine the number of phases for the current connection
             num_phases = len(param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])])
-            print('connection:', self.ems_list[connection], 'has {0} phases'.format(num_phases))
             # Loop through phases for the current connection
             phase = 0
             while phase < num_phases:
@@ -199,9 +192,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 loadnumber = dss_engine.ActiveCircuit.Loads.Next
                 phase += 1
             connection += 1
-
-            print(totalactiveload)
-            print(totalreactiveload)
 
         # Solve load flow calculation
         dss_engine.ActiveCircuit.Solution.Solve()
@@ -223,7 +213,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         for l in range(dss_engine.ActiveCircuit.Lines.Count):
             dss_engine.ActiveCircuit.SetActiveElement(
                 'Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
-            LOGGER.debug('Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
             Total_line_current = 0
             for i in range(1, 4):
                 LineCurrentMag.append(
@@ -245,7 +234,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
             TransformerPowerLim.append((dss_engine.ActiveCircuit.Transformers.kVA))
             dss_engine.ActiveCircuit.Transformers.Next
-            print(TransformerPower, TransformerPowerLim)
         LineLimitNames = [x + '_limit' for x in dss_engine.ActiveCircuit.Lines.AllNames]
         TransformerLimitNames = [x + '_limit' for x in dss_engine.ActiveCircuit.Transformers.AllNames]
 
@@ -256,11 +244,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         for d in range(len(dss_engine.ActiveCircuit.AllNodeNames)):
             self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.AllNodeNames[d],
                                                           simulation_time, BusVoltageMag[d])
+            LOGGER.debug('{0}: {1} V'.format(dss_engine.ActiveCircuit.AllNodeNames[d], BusVoltageMag[d]))
         for d in range(len(dss_engine.ActiveCircuit.Lines.AllNames)):
             self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.Lines.AllNames[d],
                                                           simulation_time, TotalLineCurrentMag[d])
             self.influx_connector.set_time_step_data_point(esdl_id, LineLimitNames[d], simulation_time,
                                                           TotalLineCurrentLim[d])
+            LOGGER.debug('{0}: {1} A, limit={2} A'.format(dss_engine.ActiveCircuit.Lines.AllNames[d], TotalLineCurrentMag[d], TotalLineCurrentLim[d]))
         for d in range(len(dss_engine.ActiveCircuit.Transformers.AllNames)):
             self.influx_connector.set_time_step_data_point(esdl_id,
                                                           dss_engine.ActiveCircuit.Transformers.AllNames[d],
@@ -268,6 +258,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             self.influx_connector.set_time_step_data_point(esdl_id,
                                                           TransformerLimitNames[d],
                                                           simulation_time, TransformerPowerLim[d])
+            LOGGER.debug('{0}: {1} MVA, limit={2} MVA'.format(dss_engine.ActiveCircuit.Transformers.AllNames[d], TransformerPower[d], TransformerPowerLim[d]))
 
         return ret_val
     

@@ -132,7 +132,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             if isinstance(a, esdl.Building):
                 for b_a in a.asset:
                     if isinstance(b_a, esdl.EConnection):
-                        Busconname = port.connectedTo[0].energyasset
                         self.ems_list.append(b_a.id)
                     if isinstance(b_a, esdl.ElectricityDemand):
                         for port in b_a.port:

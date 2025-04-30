@@ -43,6 +43,9 @@ class Test(unittest.TestCase):
         params['EConnection/aggregated_reactive_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
         params['EConnection/aggregated_reactive_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [2000, 2000, 2000]
 
+
+
+
         service.init_calculation_service(self.energy_system)
 
         # Execute

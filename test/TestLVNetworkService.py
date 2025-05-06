@@ -43,15 +43,21 @@ class Test(unittest.TestCase):
         params['EConnection/aggregated_reactive_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
         params['EConnection/aggregated_reactive_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [2000, 2000, 2000]
 
-
-
-
         service.init_calculation_service(self.energy_system)
 
         # Execute
         ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
                                                  self.energy_system)
 
+        # Assert
+        written_datapoints = service.influx_connector.data_points
+
+        expected_names = [f"cable{i}" for i in range(1, 9)] + ["transformer1"] + [f"connectionhome{i}.{j}" for i in range(1, 4) for j in range(1, 5)] + [f"node{i}.{j}" for i in range(1, 11) for j in range(1, 5)]
+        expected_names.remove("node10.4")
+        expected_names.remove("node1.4")
+        written_value_names = [data_point.output_name for data_point in written_datapoints]
+        for expected_name in expected_names:
+            self.assertIn(expected_name, written_value_names)
 
 if __name__ == '__main__':
     unittest.main()

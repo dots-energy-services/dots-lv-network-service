@@ -44,15 +44,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def init_calculation_service(self, energy_system: esdl.EnergySystem):
         LOGGER.info("init calculation service")
-        for esdl_id in self.simulator_configuration.esdl_ids:
-            LOGGER.info(f"Example of iterating over esdl ids: {esdl_id}")
 
         self.ems_list = []
 
         LOGGER.info('Create Main.dss file')
         f = open("Main.dss", "w+")
         self.network_name = energy_system.name.replace(" ", '_')
-        print(self.network_name)
+        LOGGER.debug(self.network_name)
         Voltagebases = []
 
         f.writelines('Clear \n')
@@ -173,7 +171,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         totalactiveload = 0
         totalreactiveload = 0
         # Receive load values from EMS and adjust load values:
-        loadnumber = dss_engine.ActiveCircuit.Loads.First
 
         connection = 0
         while connection < len(self.ems_list):
@@ -188,7 +185,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 dss_engine.ActiveCircuit.Loads.kvar = param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
                 totalreactiveload += param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
 
-                loadnumber = dss_engine.ActiveCircuit.Loads.Next
                 phase += 1
             connection += 1
 
@@ -239,7 +235,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         ret_val = {}
 
         # Write results to influxdb
-        time_step_nr = time_step_number.current_time_step_number
         for d in range(len(dss_engine.ActiveCircuit.AllNodeNames)):
             self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.AllNodeNames[d],
                                                           simulation_time, BusVoltageMag[d])

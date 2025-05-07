@@ -1,4 +1,4 @@
-FROM python:3.9.0
+FROM python:3.13
 # If needed you can use the official python image (larger memory size)
 #FROM python:3.9.0
 
@@ -14,4 +14,4 @@ COPY LineCode.dss ./
 RUN pip install -r requirements.txt
 RUN pip install ./
 
-ENTRYPOINT python3 src/lvnetworkservice/lvnetworkservice.py
+ENTRYPOINT ["python3", "src/lvnetworkservice/lvnetworkservice.py"]

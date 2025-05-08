@@ -166,12 +166,14 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         # OpenDSS simulation
         # ------------------
         # Define and compile network
+        LOGGER.debug('OpenDSS compile network')
         dss_engine.Text.Command = f"compile Main.dss"
 
         totalactiveload = 0
         totalreactiveload = 0
         # Receive load values from EMS and adjust load values:
 
+        LOGGER.debug('OpenDSS add loads to network')
         connection = 0
         while connection < len(self.ems_list):
             # Determine the number of phases for the current connection
@@ -189,6 +191,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             connection += 1
 
         # Solve load flow calculation
+        LOGGER.debug('OpenDSS solve loadflow calculation')
         dss_engine.ActiveCircuit.Solution.Solve()
 
         # Process results
@@ -201,10 +204,12 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         TransformerPowerLim = []
 
         # Phase voltage magnitudes for each bus:
+        LOGGER.debug('Extract voltages')
         for i in range(len(dss_engine.ActiveCircuit.AllBusVmag)):
             BusVoltageMag.append(round(dss_engine.ActiveCircuit.AllBusVmag[i], 2))
 
         # Phase current magnitudes and angles for each line:
+        LOGGER.debug('Extract current magnitudes and angles')
         for l in range(dss_engine.ActiveCircuit.Lines.Count):
             dss_engine.ActiveCircuit.SetActiveElement(
                 'Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
@@ -220,6 +225,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             TotalLineCurrentLim.append(float(dss_engine.ActiveCircuit.ActiveCktElement.NormalAmps))
 
         # Apparent power for each transformer:
+        LOGGER.debug('Extract apparent power for each transformer')
         dss_engine.ActiveCircuit.Transformers.First
         for t in range(dss_engine.ActiveCircuit.Transformers.Count):
             dss_engine.ActiveCircuit.SetActiveElement(
@@ -235,6 +241,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         ret_val = {}
 
         # Write results to influxdb
+        LOGGER.debug('Write results to influxdb')
         for d in range(len(dss_engine.ActiveCircuit.AllNodeNames)):
             self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.AllNodeNames[d],
                                                           simulation_time, BusVoltageMag[d])

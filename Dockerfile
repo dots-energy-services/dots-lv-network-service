@@ -9,6 +9,8 @@ COPY src/lvnetworkservice ./src/lvnetworkservice
 COPY pyproject.toml ./
 COPY README.md ./
 COPY requirements.txt ./
+COPY XFMRCode.dss ./
+COPY LineCode.dss ./
 RUN pip install -r requirements.txt
 RUN pip install ./
 

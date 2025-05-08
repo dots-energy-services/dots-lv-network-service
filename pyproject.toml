@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ExampleCalculationService"
+name = "lvnetworkservice"
 version = "0.0.1"
 authors = [
   { name="Example Author", email="author@example.com" },
@@ -18,5 +18,5 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/EES-TUe/Dots-calculation-service-template"
-Issues = "https://github.com/EES-TUe/Dots-calculation-service-template/issues"
+Homepage = "https://github.com/EES-TUe/lvnetworkservice/"
+Issues = "https://github.com/EES-TUe/lvnetworkservice/issues"

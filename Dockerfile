@@ -1,4 +1,4 @@
-FROM python:3.13
+FROM python:3.9.0
 # If needed you can use the official python image (larger memory size)
 #FROM python:3.9.0
 
@@ -9,8 +9,6 @@ COPY src/lvnetworkservice ./src/lvnetworkservice
 COPY pyproject.toml ./
 COPY README.md ./
 COPY requirements.txt ./
-COPY XFMRCode.dss ./
-COPY LineCode.dss ./
 RUN pip install -r requirements.txt
 RUN pip install ./
 

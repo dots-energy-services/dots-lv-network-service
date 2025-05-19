@@ -182,11 +182,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             phase = 0
             while phase < num_phases:
                 dss_engine.ActiveCircuit.Loads.kW = param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
+                # print('Active:', param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3)
                 totalactiveload += param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-
+                # print(dss_engine.ActiveCircuit.Loads.Name, dss_engine.ActiveCircuit.Loads.kW)
                 dss_engine.ActiveCircuit.Loads.kvar = param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
+                # print('Reactive:', param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3)
                 totalreactiveload += param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-
+                # print(dss_engine.ActiveCircuit.Loads.Name, dss_engine.ActiveCircuit.Loads.kvar)
                 phase += 1
             connection += 1
 
@@ -222,8 +224,9 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 Total_line_current += round(dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2],
                                             2)
             TotalLineCurrentMag.append(Total_line_current)
+            LOGGER.debug(dss_engine.ActiveCircuit.Lines.AllNames[l], Total_line_current)
             TotalLineCurrentLim.append(float(dss_engine.ActiveCircuit.ActiveCktElement.NormalAmps))
-        LOGGER.debug((TotalLineCurrentMag))
+        # LOGGER.debug((TotalLineCurrentMag))
 
         # Apparent power for each transformer:
         LOGGER.debug('Extract apparent power for each transformer')

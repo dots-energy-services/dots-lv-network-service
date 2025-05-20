@@ -229,9 +229,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 Total_line_current += round(dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2],
                                             2)
             TotalLineCurrentMag.append(Total_line_current)
-            LOGGER.debug(dss_engine.ActiveCircuit.Lines.AllNames[l], Total_line_current)
             TotalLineCurrentLim.append(float(dss_engine.ActiveCircuit.ActiveCktElement.NormalAmps))
-        # LOGGER.debug((TotalLineCurrentMag))
 
         # Apparent power for each transformer:
         LOGGER.debug('Extract apparent power for each transformer')

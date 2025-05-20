@@ -175,6 +175,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         LOGGER.debug('OpenDSS add loads to network')
         connection = 0
+
+        dss_engine.ActiveCircuit.Loads.First
         while connection < len(self.ems_list):
             # Determine the number of phases for the current connection
             num_phases = len(param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])])
@@ -182,13 +184,16 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             phase = 0
             while phase < num_phases:
                 dss_engine.ActiveCircuit.Loads.kW = param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                # print('Active:', param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3)
                 totalactiveload += param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                # print(dss_engine.ActiveCircuit.Loads.Name, dss_engine.ActiveCircuit.Loads.kW)
+                LOGGER.debug('Active power', dss_engine.ActiveCircuit.Loads.Name,
+                      dss_engine.ActiveCircuit.Loads.kW)
+
                 dss_engine.ActiveCircuit.Loads.kvar = param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                # print('Reactive:', param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3)
                 totalreactiveload += param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                # print(dss_engine.ActiveCircuit.Loads.Name, dss_engine.ActiveCircuit.Loads.kvar)
+                LOGGER.debug('Reactive power', dss_engine.ActiveCircuit.Loads.Name,
+                             dss_engine.ActiveCircuit.Loads.kva)
+
+                dss_engine.ActiveCircuit.Loads.Next
                 phase += 1
             connection += 1
 

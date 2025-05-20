@@ -185,13 +185,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             while phase < num_phases:
                 dss_engine.ActiveCircuit.Loads.kW = param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
                 totalactiveload += param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                LOGGER.debug('Active power', dss_engine.ActiveCircuit.Loads.Name,
-                      dss_engine.ActiveCircuit.Loads.kW)
+                LOGGER.debug('Active power {0} {1}'.format(dss_engine.ActiveCircuit.Loads.Name,
+                      dss_engine.ActiveCircuit.Loads.kW))
 
                 dss_engine.ActiveCircuit.Loads.kvar = param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
                 totalreactiveload += param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                LOGGER.debug('Reactive power', dss_engine.ActiveCircuit.Loads.Name,
-                             dss_engine.ActiveCircuit.Loads.kva)
+                LOGGER.debug('Reactive power {0} {1}'.format(dss_engine.ActiveCircuit.Loads.Name,
+                             dss_engine.ActiveCircuit.Loads.kva))
 
                 dss_engine.ActiveCircuit.Loads.Next
                 phase += 1

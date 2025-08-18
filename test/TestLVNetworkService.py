@@ -1,5 +1,8 @@
 from datetime import datetime
+import os
 import unittest
+
+from esdl import EConnection, EnergySystem
 from lvnetworkservice.lvnetworkservice import CalculationServiceLVNetwork
 from dots_infrastructure.DataClasses import SimulatorConfiguration, TimeStepInformation
 from dots_infrastructure.test_infra.InfluxDBMock import InfluxDBMock
@@ -25,15 +28,23 @@ class Test(unittest.TestCase):
 
     def setUp(self):
         CalculationServiceHelperFunctions.get_simulator_configuration_from_environment = simulator_environment_e_connection
+
+    def int_service_and_get_energy_system(self, test_file : str) -> tuple[CalculationServiceLVNetwork, EnergySystem]:
         esh = EnergySystemHandler()
-        esh.load_file('test.esdl')
+        esh.load_file(test_file)
+        service = CalculationServiceLVNetwork()
+        service.influx_connector = InfluxDBMock()
         energy_system = esh.get_energy_system()
-        self.energy_system = energy_system
+        service.init_calculation_service(esh.get_energy_system())
+        return service, energy_system
+    
+    def tearDown(self):
+        os.remove("Main.dss")
 
     def test_example(self):
         # Arrange
-        service = CalculationServiceLVNetwork()
-        service.influx_connector = InfluxDBMock()
+        service, energy_system = self.int_service_and_get_energy_system("test.esdl")
+
         params = {}
         params['EConnection/aggregated_active_power/5c19dcff-b004-4644-99b9-f42d15a34f3a'] = [2000, 2000, 2000]
         params['EConnection/aggregated_active_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
@@ -43,11 +54,9 @@ class Test(unittest.TestCase):
         params['EConnection/aggregated_reactive_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
         params['EConnection/aggregated_reactive_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [2000, 2000, 2000]
 
-        service.init_calculation_service(self.energy_system)
-
         # Execute
         ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
-                                                 self.energy_system)
+                                                 energy_system)
 
         # Assert
         written_datapoints = service.influx_connector.data_points
@@ -58,6 +67,23 @@ class Test(unittest.TestCase):
         written_value_names = [data_point.output_name for data_point in written_datapoints]
         for expected_name in expected_names:
             self.assertIn(expected_name, written_value_names)
+
+    def test_mv_lv_example(self):
+        # Arrange
+        service, energy_system = self.int_service_and_get_energy_system("mv-energy-system.esdl")
+
+        params = {}
+        econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
+        for econnection in econnections:
+            params[f"EConnection/aggregated_active_power/{econnection.id}"] = [2000, 2000, 2000]
+            params[f"EConnection/aggregated_reactive_power/{econnection.id}"] = [2000, 2000, 2000]
+
+        # Execute
+        ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
+                                                 energy_system)
+
+        
+
 
 if __name__ == '__main__':
     unittest.main()

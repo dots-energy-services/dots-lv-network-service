@@ -115,6 +115,11 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 length = a.length
                 linecode = a.assetType
                 if busFrom.name.split('Bus')[0] in secondary_trafo_bus:
+                    LOGGER.info(f"Processing cable with id: {a.id}")
+                    LOGGER.info(f"cable name {a.name}")
+                    LOGGER.info(f"bus from name {busFrom.name}")
+                    LOGGER.info(f"cable type name {linecode}")
+                    LOGGER.info(f"cable length {length}")
                     f.writelines('New Line.' + a.name + ' Phases=4 Bus1=' + busFrom.name.split('Bus')[
                         0] + '.1.2.3.0' + ' Bus2=' + busTo.name.split('Bus')[
                                      0] + '.1.2.3.4 LineCode=' + linecode + ' Length=' + str(

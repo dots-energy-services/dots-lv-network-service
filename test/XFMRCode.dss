@@ -34,6 +34,14 @@ New   XFMRCode.10750_420_V_400_kVA_Pauwels  Phases=3  Windings=2
 ~ wdg=1  kV =10.75   kVA=400.0 conn=delta
 ~ wdg=2  kV =0.42   kVA=400.0 conn=wye
 ~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.testtrafotype  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.highvoltagetesttrafotype  Phases=3  Windings=2
+~ wdg=1  kV =145.0   kVA=40000.0 conn=wye
+~ wdg=2  kV =10.66   kVA=40000.0 conn=delta
+~ %Loadloss=0.49 %Noloadloss=0.08575
 New   XFMRCode.9750_400_V_250_kVA_IEO  Phases=3  Windings=2
 ~ wdg=1  kV =9.75   kVA=250.0 conn=delta
 ~ wdg=2  kV =0.4   kVA=250.0 conn=wye

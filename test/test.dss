@@ -1,0 +1,49 @@
+Clear 
+
+Set DefaultBaseFrequency=50 
+
+! Swing or Source Bar 
+New circuit.TestESDL_1 phases=3 pu=1.0 basekv=10.5 bus1=Node10 
+
+! Trafo XFMRCodes 
+Redirect XFMRCode.dss 
+
+! Trafo 
+New Transformer.Transformer1 Xfmrcode=10000_400_V_250_kVA_Smit Buses=[Node10  Node1.1.2.3] kVs=[10.0 0.38] 
+
+! LineCodes 
+Redirect LineCode.dss 
+
+! Lines 
+New Line.Cable1 Phases=4 Bus1=Node1.1.2.3.0 Bus2=Node9.1.2.3.4 LineCode=4x150Al_4x6Cu_50CuAs_V_VMvKhsas Length=1.0 Units=m 
+New Line.Cable2 Phases=4 Bus1=Node9.1.2.3.4 Bus2=Node7.1.2.3.4 LineCode=4x150Al_4x6Cu_50CuAs_V_VMvKhsas Length=24.5 Units=m 
+New Line.Cable3 Phases=4 Bus1=Node7.1.2.3.4 Bus2=Node3.1.2.3.4 LineCode=4x150Al_4x6Cu_50CuAs_V_VMvKhsas Length=44.9 Units=m 
+New Line.Cable4 Phases=4 Bus1=Node3.1.2.3.4 Bus2=Node6.1.2.3.4 LineCode=4x95Al_4x6Cu_35CuAs_V_VMvKhsas Length=236.5 Units=m 
+New Line.Cable5 Phases=4 Bus1=Node6.1.2.3.4 Bus2=Node2.1.2.3.4 LineCode=4x95Al_4x6Cu_35CuAs_V_VMvKhsas Length=1.6 Units=m 
+New Line.Cable6 Phases=4 Bus1=Node3.1.2.3.4 Bus2=Node5.1.2.3.4 LineCode=4x95Al_4x6Cu_35CuAs_V_VMvKhsas Length=66.3 Units=m 
+New Line.Cable7 Phases=4 Bus1=Node4.1.2.3.4 Bus2=Node8.1.2.3.4 LineCode=4x95Al_4x6Cu_35CuAs_V_VMvKhsas Length=85.8 Units=m 
+New Line.Cable8 Phases=4 Bus1=Node5.1.2.3.4 Bus2=Node4.1.2.3.4 LineCode=4x95Al_4x6Cu_35CuAs_V_VMvKhsas Length=97.8 Units=m 
+New Line.CableHome1 Phases=4 Bus1=Node6.1.2.3.4 Bus2=ConnectionHome1.1.2.3.4 LineCode=4x6Cu_4x1Cu__GPLKh Length=34.6 Units=m 
+New Line.CableHome2 Phases=4 Bus1=Node7.1.2.3.4 Bus2=ConnectionHome2.1.2.3.4 LineCode=4x6Cu_4x1Cu__GPLKh Length=13.9 Units=m 
+New Line.CableHome3 Phases=4 Bus1=Node9.1.2.3.4 Bus2=ConnectionHome3.1.2.3.4 LineCode=4x16Cu_as16__VG_YMVK_asmb Length=1.0 Units=m 
+
+! Load Definitions 
+New Load.ConnectionHome1_Ph1 Bus1=ConnectionHome1.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome1_Ph2 Bus1=ConnectionHome1.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome1_Ph3 Bus1=ConnectionHome1.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome2_Ph1 Bus1=ConnectionHome2.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome2_Ph2 Bus1=ConnectionHome2.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome2_Ph3 Bus1=ConnectionHome2.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome3_Ph1 Bus1=ConnectionHome3.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome3_Ph2 Bus1=ConnectionHome3.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.ConnectionHome3_Ph3 Bus1=ConnectionHome3.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+
+! Final Configurations 
+Set VoltageBases = [10.0, 0.38] 
+CalcVoltageBases 
+SetkVBase Bus=Node10 kVLL=10.0
+SetkVBase Bus=Node1 kVLL=0.38
+
+! Solve
+Set mode=snapshot
+! Solve

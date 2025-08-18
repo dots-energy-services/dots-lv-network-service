@@ -1,0 +1,32 @@
+Clear 
+
+Set DefaultBaseFrequency=50 
+
+! Swing or Source Bar 
+New circuit.trafo1_lvnetwork0_1 phases=3 pu=1.0 basekv=10.0 bus1=mv_import_joint_trafo1_lvnetwork0 
+
+! Trafo XFMRCodes 
+Redirect XFMRCode.dss 
+
+! Trafo 
+New Transformer.transformer10 Xfmrcode=testtrafotype Buses=[mv_import_joint_trafo1_lvnetwork0  lvjoint12.1.2.3] kVs=[10.0 0.4] 
+
+! LineCodes 
+Redirect LineCode.dss 
+
+! Lines 
+New Line.lv_cable_trafo1_lvnetwork0_2_main_grid Phases=4 Bus1=lvjoint12.1.2.3.0 Bus2=lv_node_trafo1_lvnetwork0_2.1.2.3.4 LineCode=lv_line Length=48.1043142394034 Units=m 
+New Line.lv_cable_trafo1_lvnetwork0_3_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork0_2.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork0_3.1.2.3.4 LineCode=lv_line Length=105.25578402818978 Units=m 
+New Line.lv_cable_trafo1_lvnetwork0_4_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork0_3.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork0_4.1.2.3.4 LineCode=lv_line Length=0.35563042617942564 Units=m 
+
+! Load Definitions 
+
+! Final Configurations 
+Set VoltageBases = [10.0, 0.4] 
+CalcVoltageBases 
+SetkVBase Bus=mv_import_joint_trafo1_lvnetwork0 kVLL=10.0
+SetkVBase Bus=lvjoint12 kVLL=0.4
+
+! Solve
+Set mode=snapshot
+! Solve

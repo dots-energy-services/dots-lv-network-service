@@ -54,10 +54,12 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         self.generate_mv_dss(assets)
         # self.generate_main_dss(assets)
 
-    def generate_dss_electricity_cable(self, cable : esdl.ElectricityCable, bus_from : esdl.Joint, bus_to : esdl.Joint):
-        dss_cable = 'New Line.' + cable.name + ' Phases=4 Bus1=' + bus_from.name.split('Bus')[
-                        0] + '.1.2.3.4' + ' Bus2=' + bus_to.name.split('Bus')[
-                                     0] + '.1.2.3.4 LineCode=' + cable.assetType + ' Length=' + str(
+    def generate_dss_electricity_cable(self, cable : esdl.ElectricityCable, bus_from : esdl.Joint, bus_to : esdl.Joint, include_ground = True):
+        phases_specifications = '.1.2.3.4' if include_ground else '.1.2.3'
+        phases = 4 if include_ground else 3
+        dss_cable = 'New Line.' + cable.name + f' Phases={phases} Bus1=' + bus_from.name.split('Bus')[
+                        0] + phases_specifications + ' Bus2=' + bus_to.name.split('Bus')[
+                                     0] + phases_specifications + ' LineCode=' + cable.assetType + ' Length=' + str(
                         cable.length) + ' Units=m \n'
         return dss_cable
 
@@ -69,7 +71,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         cable_to_remove = self.find_cable_to_cut()
 
-        self.remove_cable_from_dss_file(cable_to_remove[0], cable_to_remove[1], file_name)
+        # self.remove_cable_from_dss_file(cable_to_remove[0], cable_to_remove[1], file_name)
 
     def build_mv_network_dss_file(self, assets, file_name):
         lines_to_write = []
@@ -90,17 +92,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                         bus_from = port.connectedTo[0].energyasset
                     else:
                         bus_to = port.connectedTo[0].energyasset
-                length = a.length
-                linecode = a.assetType
-                if bus_from.name.split('Bus')[0] in secondary_trafo_bus:
-                    lines_to_write.append('New Line.' + a.name + ' Phases=4 Bus1=' + bus_from.name.split('Bus')[
-                        0] + '.1.2.3.0' + ' Bus2=' + bus_to.name.split('Bus')[
-                                     0] + '.1.2.3.4 LineCode=' + linecode + ' Length=' + str(
-                        length) + ' Units=m \n')
-                else:
-                    dss_cable = self.generate_dss_electricity_cable(a, bus_from, bus_to)
-                    lines_to_write.append(dss_cable)
-
+                dss_cable = self.generate_dss_electricity_cable(a, bus_from, bus_to, False)
+                lines_to_write.append(dss_cable)
         
         with open(file_name, "w") as file:
             file.writelines(lines_to_write)
@@ -119,7 +112,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             file.writelines(lines)
 
     def find_cable_to_cut(self):
-        source_bus = "jointhighvoltagetrafo.1.2.3.4"
+        source_bus = "jointhighvoltagetrafo"
 
         graph = self.build_mv_network_graph()
 
@@ -142,16 +135,18 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def build_mv_network_graph(self):
         graph = nx.Graph()
-        for l in range(dss_engine.ActiveCircuit.Lines.Count):
+        amount_of_lines = dss_engine.ActiveCircuit.Lines.Count
+        for l in range(amount_of_lines):
             dss_engine.ActiveCircuit.SetActiveElement(
                 'Line.{0}'.format(dss_engine.ActiveCircuit.Lines.AllNames[l]))
-            bus1 = dss_engine.ActiveCircuit.ActiveCktElement.BusNames[0]
-            bus2 = dss_engine.ActiveCircuit.ActiveCktElement.BusNames[1]
+            bus1 = dss_engine.ActiveCircuit.ActiveCktElement.BusNames[0].split('.')[0]
+            bus2 = dss_engine.ActiveCircuit.ActiveCktElement.BusNames[1].split('.')[0]
             # print(bus1, bus2)
-            r1 = dss_engine.ActiveCircuit.Lines.R1
-            x1 = dss_engine.ActiveCircuit.Lines.X1
+            r1 = dss_engine.ActiveCircuit.Lines.R1[l]
+            x1 = dss_engine.ActiveCircuit.Lines.X1[l]
             impedance = (r1**2 + x1**2)**0.5
             graph.add_edge(bus1, bus2, weight=impedance)
+            LOGGER.info(f"Added edge {bus1} - {bus2} with impedance {impedance}")
         return graph
 
     def generate_main_dss(self, assets : List[esdl.Asset]):

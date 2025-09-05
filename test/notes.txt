@@ -1,0 +1,11 @@
+knip bepalen op basis van de impedence distance
+pak avg case 
+
+sla spanningen op van huis connecties
+komt de belasting op de trafo overeen met de loads op het netwerk
+loadcount checken
+aantal kabels
+node count
+total load
+
+kijk naar de copula's van mauricio

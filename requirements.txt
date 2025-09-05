@@ -1,3 +1,4 @@
 helics==3.6.1
 dots_infrastructure==1.0.1
 dss-python==0.15.7
+networkx==3.5

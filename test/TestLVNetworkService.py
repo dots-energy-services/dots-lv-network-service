@@ -39,34 +39,34 @@ class Test(unittest.TestCase):
         return service, energy_system
     
     # def tearDown(self):
-    #     os.remove("Main.dss")
+    #     os.remove("main.dss")
 
-    # def test_example(self):
-    #     # Arrange
-    #     service, energy_system = self.int_service_and_get_energy_system("test.esdl")
+    def test_example(self):
+        # Arrange
+        service, energy_system = self.int_service_and_get_energy_system("test/test.esdl")
 
-    #     params = {}
-    #     params['EConnection/aggregated_active_power/5c19dcff-b004-4644-99b9-f42d15a34f3a'] = [2000, 2000, 2000]
-    #     params['EConnection/aggregated_active_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
-    #     params['EConnection/aggregated_active_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [2000, 2000, 2000]
+        params = {}
+        params['EConnection/aggregated_active_power/5c19dcff-b004-4644-99b9-f42d15a34f3a'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_active_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_active_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [2000, 2000, 2000]
 
-    #     params['EConnection/aggregated_reactive_power/5c19dcff-b004-4644-99b9-f42d15a34f3a'] = [2000, 2000, 2000]
-    #     params['EConnection/aggregated_reactive_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
-    #     params['EConnection/aggregated_reactive_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_reactive_power/5c19dcff-b004-4644-99b9-f42d15a34f3a'] = [2000, 2000, 2000]
+        params['EConnection/aggregated_reactive_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 1000, 1000]
+        params['EConnection/aggregated_reactive_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [2000, 2000, 2000]
 
-    #     # Execute
-    #     ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
-    #                                              energy_system)
+        # Execute
+        ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
+                                                 energy_system)
 
-    #     # Assert
-    #     written_datapoints = service.influx_connector.data_points
+        # Assert
+        written_datapoints = service.influx_connector.data_points
 
-    #     expected_names = [f"cable{i}" for i in range(1, 9)] + ["transformer1"] + [f"connectionhome{i}.{j}" for i in range(1, 4) for j in range(1, 5)] + [f"node{i}.{j}" for i in range(1, 11) for j in range(1, 5)]
-    #     expected_names.remove("node10.4")
-    #     expected_names.remove("node1.4")
-    #     written_value_names = [data_point.output_name for data_point in written_datapoints]
-    #     for expected_name in expected_names:
-    #         self.assertIn(expected_name, written_value_names)
+        expected_names = [f"cable{i}" for i in range(1, 9)] + ["transformer1"] + [f"connectionhome{i}.{j}" for i in range(1, 4) for j in range(1, 5)] + [f"node{i}.{j}" for i in range(1, 11) for j in range(1, 5)]
+        expected_names.remove("node10.4")
+        expected_names.remove("node1.4")
+        written_value_names = [data_point.output_name for data_point in written_datapoints]
+        for expected_name in expected_names:
+            self.assertIn(expected_name, written_value_names)
 
     def test_mv_lv_example(self):
         # Arrange

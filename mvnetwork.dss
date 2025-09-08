@@ -70,7 +70,6 @@ New Line.MV_Cable55 Phases=3 Bus1=joint41.1.2.3 Bus2=joint42.1.2.3 LineCode=GPLK
 New Line.MV_Cable57 Phases=3 Bus1=joint42.1.2.3 Bus2=joint43.1.2.3 LineCode=GPLK-Cu-95 Length=55.9398232157146 Units=m 
 New Line.MV_Cable216 Phases=3 Bus1=joint43.1.2.3 Bus2=joint44.1.2.3 LineCode=GPLK-Cu-95 Length=4.625261150243468 Units=m 
 New Line.MV_Cable215 Phases=3 Bus1=joint44.1.2.3 Bus2=joint46.1.2.3 LineCode=GPLK-Al-240 Length=5.169610240565618 Units=m 
-New Line.MV_Cable188 Phases=3 Bus1=joint46.1.2.3 Bus2=joint47.1.2.3 LineCode=GPLK-Al-240 Length=193.1572750915696 Units=m 
 New Line.MV_Cable197 Phases=3 Bus1=joint47.1.2.3 Bus2=joint48.1.2.3 LineCode=GPLK-Al-240 Length=135.85139244985808 Units=m 
 New Line.MV_Cable204 Phases=3 Bus1=joint48.1.2.3 Bus2=joint49.1.2.3 LineCode=GPLK-Al-240 Length=73.02259114201128 Units=m 
 New Line.MV_Cable281 Phases=3 Bus1=joint49.1.2.3 Bus2=joint50.1.2.3 LineCode=GPLK-Al-240 Length=77.83193815729331 Units=m 
@@ -112,3 +111,11 @@ New Line.MV_Cable376 Phases=3 Bus1=joint91.1.2.3 Bus2=joint93.1.2.3 LineCode=GPL
 New Line.MV_Cable374 Phases=3 Bus1=joint93.1.2.3 Bus2=joint94.1.2.3 LineCode=GPLK-Al-240 Length=245.7253544242895 Units=m 
 New Line.MV_Cable468 Phases=3 Bus1=joint94.1.2.3 Bus2=joint95.1.2.3 LineCode=GPLK-Al-240 Length=76.59262106385503 Units=m 
 New Line.MV_Cable512 Phases=3 Bus1=joint95.1.2.3 Bus2=jointHighVoltageTrafo.1.2.3 LineCode=GPLK-Al-240 Length=13.09795014704964 Units=m 
+
+! Final Configurations 
+Set VoltageBases = [50.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
+CalcVoltageBases
+
+! Solve
+Set mode=snapshot
+! Solve

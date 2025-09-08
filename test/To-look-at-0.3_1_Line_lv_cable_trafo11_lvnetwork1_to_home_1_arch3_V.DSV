@@ -1,0 +1,74 @@
+SetProp, 1E050,   -1E050, 1E050, -1E050, 16777215, 16777215, 0, 4
+NoScales,
+Caption, "Line.LV_CABLE_TRAFO11_LVNETWORK1_TO_HOME_1_ARCH3 Voltages"
+ChartCaption, "Line.LV_CABLE_TRAFO11_LVNETWORK1_TO_HOME_1_ARCH3 Voltages"
+Rect, 100, 10, 200, 60
+Label, 150, 15, 0, "Line.LV_CABLE_TRAFO11_LVNETWORK1_TO_HOME_1_ARCH3", 0
+BoldLabel, 1
+Width, 7
+DataColor, 8421504
+Move, 0, 0
+Draw, 300, 0
+DataColor, 0
+Width, 3
+FStyle, 0
+Move, 0, 50
+Draw, 100, 50
+Center,  15, 52, 10, "0.999804"
+Center,  60, 52, 10, " /_    -0.01"
+Center,  90, 52, 10, " ^"
+FStyle, 0
+Move, 0, 40
+Draw, 100, 40
+Center,  15, 42, 10, "0.999804"
+Center,  60, 42, 10, " /_  -120.01"
+Center,  90, 42, 10, " ^"
+FStyle, 0
+Move, 0, 30
+Draw, 100, 30
+Center,  15, 32, 10, "0.999804"
+Center,  60, 32, 10, " /_   119.99"
+Center,  90, 32, 10, " ^"
+FStyle, 0
+Move, 0, 20
+Draw, 100, 20
+Center,  15, 22, 10, "4.20735E-011"
+Center,  60, 22, 10, " /_    60.01"
+Center,  90, 22, 10, " ^"
+Width, 1
+Width, 7
+Move, -5, 5
+Draw, -5, 55
+Center,  25, 60, 10, "LV_NODE_TRAFO11_LVNETWORK1_3.1.2.3.4"
+Width, 3
+FStyle, 0
+Move, 300, 50
+Draw, 200, 50
+Center,  210, 52, 10, "^ "
+Center,  240, 52, 10, "0.999804"
+Center,  280, 52, 10, " /_    -0.01"
+FStyle, 0
+Move, 300, 40
+Draw, 200, 40
+Center,  210, 42, 10, "^ "
+Center,  240, 42, 10, "0.999804"
+Center,  280, 42, 10, " /_  -120.01"
+FStyle, 0
+Move, 300, 30
+Draw, 200, 30
+Center,  210, 32, 10, "^ "
+Center,  240, 32, 10, "0.999804"
+Center,  280, 32, 10, " /_   119.99"
+FStyle, 0
+Move, 300, 20
+Draw, 200, 20
+Center,  210, 22, 10, "^ "
+Center,  240, 22, 10, "4.20856E-011"
+Center,  280, 22, 10, " /_    60.01"
+Width, 1
+Width, 7
+Move, 305, 5
+Draw, 305, 55
+Center,  275, 60, 10, "HOME918.1.2.3.4"
+Caption, " Voltages"
+PctRim, 5

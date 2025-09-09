@@ -1,0 +1,42 @@
+
+SYMMETRICAL COMPONENT POWERS BY CIRCUIT ELEMENT (first 3 phases)                                     Excess Power
+
+Element                    Term    P1(kW)   Q1(kvar)       P2         Q2      P0      Q0       P_Norm      Q_Norm     P_Emerg    Q_Emerg
+
+"Vsource.SOURCE"            1       -0.0       -0.0       -0.0       -0.0     0.0    -0.0
+"Vsource.SOURCE"            2        0.0        0.0        0.0        0.0     0.0     0.0
+"Transformer.TRANSFORMER1"  1        0.0        0.0        0.0        0.0    -0.0    -0.0        0.0        0.0        0.0        0.0
+"Transformer.TRANSFORMER1"  2        0.4        0.0        0.0       -0.0     0.0     0.0
+"Line.CABLE1"               1        0.0       -0.0        0.0       -0.0    -0.0    -0.0        0.0        0.0        0.0        0.0
+"Line.CABLE1"               2       -0.0        0.0       -0.0        0.0    -0.0    -0.0
+"Line.CABLE2"               1        0.0       -0.0       -0.0        0.0     0.0     0.0        0.0        0.0        0.0        0.0
+"Line.CABLE2"               2       -0.0        0.0        0.0       -0.0    -0.0    -0.0
+"Line.CABLE3"               1        0.0       -0.0       -0.0        0.0     0.0     0.0        0.0        0.0        0.0        0.0
+"Line.CABLE3"               2       -0.0        0.0        0.0       -0.0    -0.0    -0.0
+"Line.CABLE4"               1        0.0       -0.0       -0.0        0.0     0.0     0.0        0.0        0.0        0.0        0.0
+"Line.CABLE4"               2       -0.0        0.0        0.0        0.0     0.0    -0.0
+"Line.CABLE5"               1       -0.0       -0.0       -0.0       -0.0     0.0    -0.0        0.0        0.0        0.0        0.0
+"Line.CABLE5"               2        0.0        0.0        0.0        0.0    -0.0    -0.0
+"Line.CABLE6"               1       -0.0       -0.0        0.0        0.0     0.0     0.0        0.0        0.0        0.0        0.0
+"Line.CABLE6"               2       -0.0        0.0        0.0       -0.0     0.0    -0.0
+"Line.CABLE7"               1        0.0       -0.0       -0.0       -0.0    -0.0     0.0        0.0        0.0        0.0        0.0
+"Line.CABLE7"               2       -0.0        0.0        0.0        0.0    -0.0    -0.0
+"Line.CABLE8"               1        0.0       -0.0        0.0        0.0    -0.0     0.0        0.0        0.0        0.0        0.0
+"Line.CABLE8"               2        0.0        0.0       -0.0       -0.0     0.0    -0.0
+"Line.CABLEHOME1"           1        0.0       -0.0       -0.0       -0.0     0.0    -0.0        0.0        0.0        0.0        0.0
+"Line.CABLEHOME1"           2       -0.0        0.0        0.0        0.0    -0.0     0.0
+"Line.CABLEHOME2"           1        0.0       -0.0        0.0       -0.0    -0.0    -0.0        0.0        0.0        0.0        0.0
+"Line.CABLEHOME2"           2       -0.0        0.0        0.0       -0.0     0.0    -0.0
+"Line.CABLEHOME3"           1        0.0       -0.0       -0.0        0.0     0.0    -0.0        0.0        0.0        0.0        0.0
+"Line.CABLEHOME3"           2       -0.0        0.0        0.0       -0.0    -0.0    -0.0
+"Load.CONNECTIONHOME1_PH1"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME1_PH2"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME1_PH3"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME2_PH1"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME2_PH2"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME2_PH3"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME3_PH1"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME3_PH2"  1        0.0        0.0        0.0        0.0     0.0     0.0
+"Load.CONNECTIONHOME3_PH3"  1        0.0        0.0        0.0        0.0     0.0     0.0
+
+Total Circuit Losses =    0.4 +j    0.0

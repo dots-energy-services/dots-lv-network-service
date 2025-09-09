@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from io import TextIOWrapper
+import time
 from typing import List
 from esdl import esdl
 import helics as h
@@ -17,6 +17,12 @@ from dataclasses import dataclass
 class DssCircuitProperties:
     secondary_trafo_busses : List[str]
     voltage_bases: List[float]
+
+@dataclass
+class PowerFlowResult:
+    bus_voltage_mag : List[float]
+    total_line_current_mag : List[float]
+    transformer_power : List[float]
 
 class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
@@ -49,7 +55,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         )
         self.dss_engine = dss.DSS
         self.lines_section_start_marker = '! Lines \n'
+        self.transformer_section_start_marker = '! Trafo \n'
         self.add_calculation(calculation_information)
+        self.ems_list : dict[str, List[str]] = {}
+        self.all_node_names : List[str] = []
+        self.all_line_names : List[str] = []
+        self.all_transformer_names : List[str] = []
+        self.dss_file_name = "main.dss"
 
     def get_assets_of_type(self, assets : List[esdl.Asset], type):
         return [a for a in assets if isinstance(a, type)]
@@ -57,8 +69,14 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
     def init_calculation_service(self, energy_system : esdl.EnergySystem):
         assets = energy_system.instance[0].area.asset
         self.network_name = energy_system.name.replace(" ", '_')
-        dss_circuit_properties = self.generate_mv_dss(assets)
+        lines_to_write = []
+        dss_circuit_properties = self.build_base_dss_file(assets, lines_to_write)
+        self.add_mv_network_to_main_dss(assets, lines_to_write)
         self.add_lv_networks_to_main_dss(assets, dss_circuit_properties)
+        self.dss_engine.Text.Command = f"compile {self.dss_file_name}"
+        self.all_node_names = self.dss_engine.ActiveCircuit.AllNodeNames
+        self.all_line_names = self.dss_engine.ActiveCircuit.Lines.AllNames
+        self.all_transformer_names = self.dss_engine.ActiveCircuit.Transformers.AllNames
 
     def generate_dss_electricity_cable(self, cable : esdl.ElectricityCable, bus_from : esdl.Joint, bus_to : esdl.Joint, include_ground = True):
         phases_specifications = '.1.2.3.4' if include_ground else '.1.2.3'
@@ -69,24 +87,28 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                         cable.length) + ' Units=m \n'
         return dss_cable
 
-    def generate_mv_dss(self, assets : List[esdl.Asset]) -> DssCircuitProperties:
-        file_name = "main.dss"
-        dss_circuit_properties = self.build_mv_network_dss_file(assets, file_name)
+    def add_mv_network_to_main_dss(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
 
-        self.dss_engine.Text.Command = "compile main.dss"
+        self.add_mv_lines(assets, lines_to_write)
 
-        self.cut_cable_in_mv_network(file_name)
+        with open(self.dss_file_name, "w") as f:
+            f.writelines(lines_to_write)
+        lines_to_write.clear()
 
-        return dss_circuit_properties
+        self.dss_engine.Text.Command = f"compile {self.dss_file_name}"
 
-    def build_mv_network_dss_file(self, assets, file_name) -> DssCircuitProperties:
-        lines_to_write = []
+        self.cut_cable_in_mv_network(self.dss_file_name)
+    
+    def build_base_dss_file(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
         lines_to_write.append('Clear \n')
         lines_to_write.append('\nSet DefaultBaseFrequency=50 \n')
 
         voltage_bases = self.generate_source(assets, lines_to_write)
         secondary_trafo_busses = self.generate_trafos(assets, lines_to_write, voltage_bases)
 
+        return DssCircuitProperties(secondary_trafo_busses, voltage_bases)
+
+    def add_mv_lines(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
         lines_to_write.append('\n! LineCodes \n')
         lines_to_write.append('Redirect LineCode.dss \n')
         lines_to_write.append('\n')
@@ -101,11 +123,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                         bus_to = port.connectedTo[0].energyasset
                 dss_cable = self.generate_dss_electricity_cable(a, bus_from, bus_to, False)
                 lines_to_write.append(dss_cable)
-        
-        with open(file_name, "w") as file:
-            file.writelines(lines_to_write)
-        lines_to_write.clear()
-        return DssCircuitProperties(secondary_trafo_busses, voltage_bases)
+
 
     def remove_cable_from_dss_file(self, joint_name1 : str, joint_name2 : str, file_name : str):
         with open(file_name, "r") as file:
@@ -176,12 +194,11 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 impedance = (r1**2 + x1**2)**0.5
                 graph.add_edge(bus1, bus2, weight=impedance)
                 LOGGER.info(f"Added edge {bus1} - {bus2} with impedance {impedance}")
-    
+
             assert len(graph.edges) == len(self.dss_engine.ActiveCircuit.Lines.AllNames)
         return graph
 
     def add_lv_networks_to_main_dss(self, assets : List[esdl.Asset], dss_circuit_properties : DssCircuitProperties):
-        self.ems_list = []
         lines = []
         with open("main.dss", "r") as f:
             lines = f.readlines()
@@ -215,7 +232,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         for a in self.get_assets_of_type(assets, esdl.Building):
             name = ""
             e_connection = self.get_assets_of_type(a.asset, esdl.EConnection)[0]
-            self.ems_list.append(e_connection.id)
+            self.ems_list[e_connection.id] = []
             name = e_connection.name
             for electricity_demand in self.get_assets_of_type(a.asset, esdl.ElectricityDemand):
                 # van 10 kv naar 0.4 kv basen
@@ -228,7 +245,9 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 lines.append(
                     'New Load.{name}_Ph3 Bus1={bus}.3.4 Phases=1 Conn=wye Model=1 kV=0.230 kW=1 PF=1.0 Vmaxpu=1.5 Vminpu=0.60 \n'.format(
                         name=name, bus=name))
-
+                self.ems_list[e_connection.id].append(f"Load.{name}_Ph1")
+                self.ems_list[e_connection.id].append(f"Load.{name}_Ph2")
+                self.ems_list[e_connection.id].append(f"Load.{name}_Ph3")
 
         lines.append('\n! Final Configurations \n')
         lines.append('Set VoltageBases = {0}\n'.format(dss_circuit_properties.voltage_bases))
@@ -245,7 +264,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
     def generate_trafos(self, assets : List[esdl.Asset], lines_to_write : List[str], voltage_bases : List[float]) -> List[str]:
         lines_to_write.append('\n! Trafo XFMRCodes \n')
         lines_to_write.append('Redirect XFMRCode.dss \n')
-        lines_to_write.append('\n! Trafo \n')
+        lines_to_write.append('\n')
+        lines_to_write.append(self.transformer_section_start_marker)
 
         secondary_trafo_bus = []
         for a in self.get_assets_of_type(assets, esdl.Transformer):
@@ -292,49 +312,60 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         return voltage_bases
 
     def load_flow_current_step(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
+        
+        self.set_load_flow_parameters(param_dict)
+
+        self.do_load_flow()
+
+        start = time.time()
+        results = self.process_results()
+        end = time.time()
+        LOGGER.info(f"Processing results took {end - start} seconds")
+        start = time.time()
+        self.write_results_to_influx(esdl_id, simulation_time, results)
+        end = time.time()
+        LOGGER.info(f"Processing results took {end - start} seconds")
+
+        return {}
+
+    def set_load_flow_parameters(self, param_dict : dict):
         # START user calc
         LOGGER.info("calculation 'load_flow_current_step' started")
 
-        # ------------------
-        # OpenDSS simulation
-        # ------------------
-        # Define and compile network
         LOGGER.debug('OpenDSS compile network')
-        self.dss_engine.Text.Command = f"compile Main.dss"
-
-        totalactiveload = 0
-        totalreactiveload = 0
-        # Receive load values from EMS and adjust load values:
+        
 
         LOGGER.debug('OpenDSS add loads to network')
-        connection = 0
 
-        self.dss_engine.ActiveCircuit.Loads.First
-        while connection < len(self.ems_list):
-            # Determine the number of phases for the current connection
-            num_phases = len(param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])])
-            # Loop through phases for the current connection
-            phase = 0
-            while phase < num_phases:
-                param_key = 'EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])
-                self.dss_engine.ActiveCircuit.Loads.kW = param_dict[param_key][phase] * 1e-3
-                totalactiveload += param_dict['EConnection/aggregated_active_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                LOGGER.debug('Active power {0} {1}'.format(self.dss_engine.ActiveCircuit.Loads.Name,
-                      self.dss_engine.ActiveCircuit.Loads.kW))
+        self.dss_engine.ActiveCircuit.SetActiveElement(self.dss_engine.ActiveCircuit.Loads.AllNames[0])
+        property_mapping : dict [str, int] = {
+            "kW" : 0,
+            "kvar" : 0
+        }
+        for i, prop_name in enumerate(self.dss_engine.ActiveCircuit.ActiveCktElement.AllPropertyNames):
+            if prop_name in property_mapping:
+                property_mapping[prop_name] = i
+        for id in self.ems_list:
+            num_phases = len(param_dict[f'EConnection/aggregated_active_power/{id}'])
+            for i, name in enumerate(self.ems_list[id]):
+                if i < num_phases:
+                    self.dss_engine.ActiveCircuit.SetActiveElement(name)
+                    active_ckt_element = self.dss_engine.ActiveCircuit.ActiveCktElement
+                    active_load = param_dict[f'EConnection/aggregated_active_power/{id}'][i] * 1e-3
+                    reactive_load = param_dict[f'EConnection/aggregated_reactive_power/{id}'][i] * 1e-3
+                    active_ckt_element.Properties[property_mapping["kW"]].Val = active_load
+                    active_ckt_element.Properties[property_mapping["kvar"]].Val = reactive_load
+        
+        self.dss_engine.ActiveCircuit.SetActiveElement(self.dss_engine.ActiveCircuit.Loads.AllNames[0])
+        for load in self.dss_engine.ActiveCircuit.Loads.AllNames:
+            self.dss_engine.ActiveCircuit.SetActiveElement(load)
+            LOGGER.info(f"Load {load} has kW value {self.dss_engine.ActiveCircuit.ActiveCktElement.Properties[property_mapping['kW']].Val} and kvar value {self.dss_engine.ActiveCircuit.ActiveCktElement.Properties[property_mapping['kvar']].Val}")
 
-                self.dss_engine.ActiveCircuit.Loads.kvar = param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                totalreactiveload += param_dict['EConnection/aggregated_reactive_power/{0}'.format(self.ems_list[connection])][phase] * 1e-3
-                LOGGER.debug('Reactive power {0} {1}'.format(self.dss_engine.ActiveCircuit.Loads.Name,
-                             self.dss_engine.ActiveCircuit.Loads.kva))
-
-                self.dss_engine.ActiveCircuit.Loads.Next
-                phase += 1
-            connection += 1
-
-        # Solve load flow calculation
+    def do_load_flow(self):
         LOGGER.debug('OpenDSS solve loadflow calculation')
         self.dss_engine.ActiveCircuit.Solution.Solve()
 
+    def process_results(self) -> PowerFlowResult:
         # Process results
         BusVoltageMag = []
         LineCurrentMag = []
@@ -351,9 +382,9 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         # Phase current magnitudes and angles for each line:
         LOGGER.debug('Extract current magnitudes and angles')
-        for l in range(self.dss_engine.ActiveCircuit.Lines.Count):
+        for name in self.all_line_names:
             self.dss_engine.ActiveCircuit.SetActiveElement(
-                'Line.{0}'.format(self.dss_engine.ActiveCircuit.Lines.AllNames[l]))
+                'Line.{0}'.format(name))
             Total_line_current = 0
             for i in range(1, 4):
                 LineCurrentMag.append(
@@ -376,42 +407,30 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
             TransformerPowerLim.append((self.dss_engine.ActiveCircuit.Transformers.kVA))
             self.dss_engine.ActiveCircuit.Transformers.Next
-        LineLimitNames = [x + '_limit' for x in self.dss_engine.ActiveCircuit.Lines.AllNames]
-        TransformerLimitNames = [x + '_limit' for x in self.dss_engine.ActiveCircuit.Transformers.AllNames]
 
-        ret_val = {}
+        return PowerFlowResult(BusVoltageMag, TotalLineCurrentMag, TransformerPower)
 
-        # remove all the limits
-
+    def write_results_to_influx(self, esdl_id : EsdlId, simulation_time : datetime, power_flow_result : PowerFlowResult):
         # Write results to influxdb
-        amount_of_node_values = len(self.dss_engine.ActiveCircuit.AllNodeNames)
-        amount_of_line_values = len(self.dss_engine.ActiveCircuit.Lines.AllNames)
+        amount_of_node_values = len([name for name in self.all_node_names if "home" in name.lower()])
+        amount_of_line_values = len(self.all_line_names)
         amount_of_transformer_values = len(self.dss_engine.ActiveCircuit.Transformers.AllNames)
         LOGGER.info(f'Writing {amount_of_node_values} node values to influxdb')
         LOGGER.info(f'Writing {amount_of_line_values} line values to influxdb')
         LOGGER.info(f'Writing {amount_of_transformer_values} transformer values to influxdb')
-        LOGGER.info(f'Writing a total of {sum([amount_of_line_values, amount_of_transformer_values])} values to influxdb')
-        # for d in range(len(self.dss_engine.ActiveCircuit.AllNodeNames)):
-        #     self.influx_connector.set_time_step_data_point(esdl_id, dss_engine.ActiveCircuit.AllNodeNames[d],
-        #                                                   simulation_time, BusVoltageMag[d])
-        #     LOGGER.debug('{0}: {1} V'.format(dss_engine.ActiveCircuit.AllNodeNames[d], BusVoltageMag[d]))
-        for d in range(len(self.dss_engine.ActiveCircuit.Lines.AllNames)):
-            self.influx_connector.set_time_step_data_point(esdl_id, self.dss_engine.ActiveCircuit.Lines.AllNames[d],
-                                                          simulation_time, TotalLineCurrentMag[d])
-            # self.influx_connector.set_time_step_data_point(esdl_id, LineLimitNames[d], simulation_time,
-            #                                               TotalLineCurrentLim[d])
-            LOGGER.debug('{0}: {1} A, limit={2} A'.format(self.dss_engine.ActiveCircuit.Lines.AllNames[d], TotalLineCurrentMag[d], TotalLineCurrentLim[d]))
+        LOGGER.info(f'Writing a total of {sum([amount_of_line_values, amount_of_transformer_values, amount_of_node_values])} values to influxdb')
+        for d in range(len(self.all_node_names)):
+            if "home" in self.all_node_names[d].lower():
+                self.influx_connector.set_time_step_data_point(esdl_id, self.all_node_names[d],
+                                                          simulation_time, power_flow_result.bus_voltage_mag[d])
+        for d in range(len(self.all_line_names)):
+            self.influx_connector.set_time_step_data_point(esdl_id, self.all_line_names[d],
+                                                          simulation_time, power_flow_result.total_line_current_mag[d])
         for d in range(len(self.dss_engine.ActiveCircuit.Transformers.AllNames)):
             self.influx_connector.set_time_step_data_point(esdl_id,
                                                           self.dss_engine.ActiveCircuit.Transformers.AllNames[d],
-                                                          simulation_time, TransformerPower[d])
-            # self.influx_connector.set_time_step_data_point(esdl_id,
-            #                                               TransformerLimitNames[d],
-            #                                               simulation_time, TransformerPowerLim[d])
-            LOGGER.debug('{0}: {1} MVA, limit={2} MVA'.format(self.dss_engine.ActiveCircuit.Transformers.AllNames[d], TransformerPower[d], TransformerPowerLim[d]))
+                                                          simulation_time, power_flow_result.bus_voltage_mag[d])
 
-        return ret_val
-    
 if __name__ == "__main__":
     helics_simulation_executor = CalculationServiceLVNetwork()
     helics_simulation_executor.start_simulation()

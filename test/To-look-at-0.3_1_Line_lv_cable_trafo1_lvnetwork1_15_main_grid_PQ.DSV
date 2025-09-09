@@ -1,0 +1,74 @@
+SetProp, 1E050,   -1E050, 1E050, -1E050, 16777215, 16777215, 0, 4
+NoScales,
+Caption, "Line.LV_CABLE_TRAFO1_LVNETWORK1_15_MAIN_GRID Powers"
+ChartCaption, "Line.LV_CABLE_TRAFO1_LVNETWORK1_15_MAIN_GRID Powers"
+Rect, 100, 10, 200, 60
+Label, 150, 15, 0, "Line.LV_CABLE_TRAFO1_LVNETWORK1_15_MAIN_GRID", 0
+BoldLabel, 1
+Width, 7
+DataColor, 8421504
+Move, 0, 0
+Draw, 300, 0
+DataColor, 0
+Width, 3
+FStyle, 0
+Move, 0, 50
+Draw, 100, 50
+Center,  15, 52, 10, "7.27225E-005 + j"
+Center,  60, 52, 10, "-6.41315 kVA"
+Center,  90, 52, 10, " ->"
+FStyle, 0
+Move, 0, 40
+Draw, 100, 40
+Center,  15, 42, 10, "7.21582E-005 + j"
+Center,  60, 42, 10, "-6.41315 kVA"
+Center,  90, 42, 10, " ->"
+FStyle, 0
+Move, 0, 30
+Draw, 100, 30
+Center,  15, 32, 10, "7.20936E-005 + j"
+Center,  60, 32, 10, "-6.41315 kVA"
+Center,  90, 32, 10, " ->"
+FStyle, 0
+Move, 0, 20
+Draw, 100, 20
+Center,  15, 22, 10, "-8.028E-015 + j"
+Center,  60, 22, 10, "-6.339E-016 kVA"
+Center,  90, 22, 10, " ->"
+Width, 1
+Width, 7
+Move, -5, 5
+Draw, -5, 55
+Center,  25, 60, 10, "LV_NODE_TRAFO1_LVNETWORK1_14.1.2.3.4"
+Width, 3
+FStyle, 0
+Move, 300, 50
+Draw, 200, 50
+Center,  210, 52, 10, "<- "
+Center,  240, 52, 10, "-7.26888E-005 + j"
+Center,  280, 52, 10, "6.41306 kVA"
+FStyle, 0
+Move, 300, 40
+Draw, 200, 40
+Center,  210, 42, 10, "<- "
+Center,  240, 42, 10, "-7.20927E-005 + j"
+Center,  280, 42, 10, "6.41306 kVA"
+FStyle, 0
+Move, 300, 30
+Draw, 200, 30
+Center,  210, 32, 10, "<- "
+Center,  240, 32, 10, "-7.20026E-005 + j"
+Center,  280, 32, 10, "6.41306 kVA"
+FStyle, 0
+Move, 300, 20
+Draw, 200, 20
+Center,  210, 22, 10, "<- "
+Center,  240, 22, 10, "7.99442E-015 + j"
+Center,  280, 22, 10, "7.00454E-016 kVA"
+Width, 1
+Width, 7
+Move, 305, 5
+Draw, 305, 55
+Center,  275, 60, 10, "LV_NODE_TRAFO1_LVNETWORK1_15.1.2.3.4"
+Caption, " Powers"
+PctRim, 5

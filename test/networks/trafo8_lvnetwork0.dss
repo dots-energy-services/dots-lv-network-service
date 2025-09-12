@@ -1,0 +1,49 @@
+Clear 
+
+Set DefaultBaseFrequency=50 
+
+! Swing or Source Bar 
+New circuit.trafo8_lvnetwork0_1 phases=3 pu=1.0 basekv=10.0 bus1=mv_import_joint_trafo8_lvnetwork0 
+
+! Trafo XFMRCodes 
+Redirect XFMRCode.dss 
+
+! Trafo 
+New Transformer.transformer51 Xfmrcode=testtrafotype Buses=[mv_import_joint_trafo8_lvnetwork0  lvjoint53.1.2.3] kVs=[10.0 0.4] 
+
+! LineCodes 
+Redirect LineCode.dss 
+
+! Lines 
+New Line.lv_cable_trafo8_lvnetwork0_2_main_grid Phases=4 Bus1=lvjoint53.1.2.3.0 Bus2=lv_node_trafo8_lvnetwork0_2.1.2.3.4 LineCode=lv_line Length=158.2843412110765 Units=m 
+New Line.lv_cable_trafo8_lvnetwork0_to_home_1_arch6 Phases=4 Bus1=lv_node_trafo8_lvnetwork0_2.1.2.3.4 Bus2=1xhome762.1.2.3.4 LineCode=lv_line_to_home Length=8.375281282791043 Units=m 
+New Line.lv_cable_trafo8_lvnetwork0_3_main_grid Phases=4 Bus1=lv_node_trafo8_lvnetwork0_2.1.2.3.4 Bus2=lv_node_trafo8_lvnetwork0_3.1.2.3.4 LineCode=lv_line Length=2.708217200362836 Units=m 
+New Line.lv_cable_trafo8_lvnetwork0_to_home_0_arch6 Phases=4 Bus1=lv_node_trafo8_lvnetwork0_3.1.2.3.4 Bus2=1xhome761.1.2.3.4 LineCode=lv_line_to_home Length=13.658908385347017 Units=m 
+New Line.lv_cable_trafo8_lvnetwork0_4_main_grid Phases=4 Bus1=lv_node_trafo8_lvnetwork0_3.1.2.3.4 Bus2=lv_node_trafo8_lvnetwork0_4.1.2.3.4 LineCode=lv_line Length=0.8879887032682997 Units=m 
+New Line.lv_cable_trafo8_lvnetwork0_to_home_3_arch6 Phases=4 Bus1=lv_node_trafo8_lvnetwork0_4.1.2.3.4 Bus2=26xhome764.1.2.3.4 LineCode=lv_line_to_home Length=0.8002906114385424 Units=m 
+New Line.lv_cable_trafo8_lvnetwork0_5_main_grid Phases=4 Bus1=lv_node_trafo8_lvnetwork0_4.1.2.3.4 Bus2=lv_node_trafo8_lvnetwork0_5.1.2.3.4 LineCode=lv_line Length=24.211196153294903 Units=m 
+New Line.lv_cable_trafo8_lvnetwork0_to_home_2_arch6 Phases=4 Bus1=lv_node_trafo8_lvnetwork0_5.1.2.3.4 Bus2=19xhome763.1.2.3.4 LineCode=lv_line_to_home Length=10.767411620268403 Units=m 
+
+! Load Definitions 
+New Load.1xhome762_Ph1 Bus1=1xhome762.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome762_Ph2 Bus1=1xhome762.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome762_Ph3 Bus1=1xhome762.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome761_Ph1 Bus1=1xhome761.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome761_Ph2 Bus1=1xhome761.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome761_Ph3 Bus1=1xhome761.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.26xhome764_Ph1 Bus1=26xhome764.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.26xhome764_Ph2 Bus1=26xhome764.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.26xhome764_Ph3 Bus1=26xhome764.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.19xhome763_Ph1 Bus1=19xhome763.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.19xhome763_Ph2 Bus1=19xhome763.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.19xhome763_Ph3 Bus1=19xhome763.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+
+! Final Configurations 
+Set VoltageBases = [10.0, 0.4] 
+CalcVoltageBases 
+SetkVBase Bus=mv_import_joint_trafo8_lvnetwork0 kVLL=10.0
+SetkVBase Bus=lvjoint53 kVLL=0.4
+
+! Solve
+Set mode=snapshot
+! Solve

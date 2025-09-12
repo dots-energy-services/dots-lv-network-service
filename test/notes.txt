@@ -9,3 +9,7 @@ node count
 total load
 
 kijk naar de copula's van mauricio
+
+lv_cable_trafo1_lvnetwork0_2_main_grid
+
+((active_power - active_power_losses) / (aantal huizen * 3) * 1KW) * aantal_huizen

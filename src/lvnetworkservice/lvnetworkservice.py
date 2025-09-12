@@ -58,6 +58,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         self.dss_engine = dss.DSS
         self.lines_section_start_marker = '! Lines \n'
         self.transformer_section_start_marker = '! Trafo \n'
+        self.load_definition_section_start_marker = '! Load Definitions \n'
         self.add_calculation(calculation_information)
         self.ems_list : dict[str, List[str]] = {}
         self.all_node_names : List[str] = []
@@ -138,7 +139,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         LOGGER.info(f"Removing line: {found_line}")
         lines.remove(found_line)
 
-        with open("main.dss", "w") as file:
+        with open(self.dss_file_name, "w") as file:
             file.writelines(lines)
 
     def cut_cable_in_mv_network(self, file_name : str):
@@ -203,7 +204,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def add_lv_networks_to_main_dss(self, assets : List[esdl.Asset], dss_circuit_properties : DssCircuitProperties):
         lines = []
-        with open("main.dss", "r") as f:
+        with open(self.dss_file_name, "r") as f:
             lines = f.readlines()
 
         new_lines_descriptions = []
@@ -231,7 +232,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         lines_index_start = lines.index(self.lines_section_start_marker)
         lines = lines[:lines_index_start+1] + new_lines_descriptions + lines[lines_index_start+1:]
 
-        lines.append('\n! Load Definitions \n')
+        lines.append('\n')
+        lines.append(self.load_definition_section_start_marker)
         for a in self.get_assets_of_type(assets, esdl.Building):
             name = ""
             e_connection = self.get_assets_of_type(a.asset, esdl.EConnection)[0]
@@ -269,7 +271,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         lines.append('Set mode=snapshot\n')
         lines.append('! Solve\n')
 
-        with open("main.dss", "w") as f:
+        with open(self.dss_file_name, "w") as f:
             f.writelines(lines)
 
     def generate_trafos(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
@@ -366,9 +368,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                     active_ckt_element.Properties[property_mapping["kvar"]].Val = reactive_load
         
         self.dss_engine.ActiveCircuit.SetActiveElement(self.dss_engine.ActiveCircuit.Loads.AllNames[0])
-        for load in self.dss_engine.ActiveCircuit.Loads.AllNames:
-            self.dss_engine.ActiveCircuit.SetActiveElement(load)
-            LOGGER.info(f"Load {load} has kW value {self.dss_engine.ActiveCircuit.ActiveCktElement.Properties[property_mapping['kW']].Val} and kvar value {self.dss_engine.ActiveCircuit.ActiveCktElement.Properties[property_mapping['kvar']].Val}")
 
     def do_load_flow(self):
         LOGGER.debug('OpenDSS solve loadflow calculation')
@@ -431,7 +430,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         for d in range(len(self.all_node_names)):
             if "home" in self.all_node_names[d].lower():
                 voltage_value = power_flow_result.bus_voltage_mag[d]
-                LOGGER.info(f"Voltage value for load {self.all_node_names[d]}: {voltage_value}")
                 self.influx_connector.set_time_step_data_point(esdl_id, self.all_node_names[d],
                                                           simulation_time, voltage_value)
         for d in range(len(self.all_line_names)):

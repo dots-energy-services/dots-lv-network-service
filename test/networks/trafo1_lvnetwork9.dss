@@ -1,0 +1,236 @@
+Clear 
+
+Set DefaultBaseFrequency=50 
+
+! Swing or Source Bar 
+New circuit.trafo1_lvnetwork9_1 phases=3 pu=1.0 basekv=10.0 bus1=mv_import_joint_trafo1_lvnetwork9 
+
+! Trafo XFMRCodes 
+Redirect XFMRCode.dss 
+
+! Trafo 
+New Transformer.transformer10 Xfmrcode=testtrafotype Buses=[mv_import_joint_trafo1_lvnetwork9  lvjoint12.1.2.3] kVs=[10.0 0.4] 
+
+! LineCodes 
+Redirect LineCode.dss 
+
+! Lines 
+New Line.lv_cable_trafo1_lvnetwork9_2_main_grid Phases=4 Bus1=lvjoint12.1.2.3.0 Bus2=lv_node_trafo1_lvnetwork9_2.1.2.3.4 LineCode=lv_line Length=111.45066732926749 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_16_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_2.1.2.3.4 Bus2=1xhome241.1.2.3.4 LineCode=lv_line_to_home Length=5.750263146452341 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_3_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_2.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_3.1.2.3.4 LineCode=lv_line Length=7.72700722279987 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_18_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_3.1.2.3.4 Bus2=1xhome243.1.2.3.4 LineCode=lv_line_to_home Length=5.8817473125991055 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_4_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_3.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_4.1.2.3.4 LineCode=lv_line Length=13.36663629700206 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_19_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_4.1.2.3.4 Bus2=1xhome244.1.2.3.4 LineCode=lv_line_to_home Length=5.944277085630474 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_5_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_4.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_5.1.2.3.4 LineCode=lv_line Length=6.778374688981396 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_4_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_5.1.2.3.4 Bus2=1xhome229.1.2.3.4 LineCode=lv_line_to_home Length=5.924981604581873 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_6_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_5.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_6.1.2.3.4 LineCode=lv_line Length=12.254093893939256 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_5_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_6.1.2.3.4 Bus2=1xhome230.1.2.3.4 LineCode=lv_line_to_home Length=13.104895583347908 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_7_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_6.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_7.1.2.3.4 LineCode=lv_line Length=8.057565691327074 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_6_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_7.1.2.3.4 Bus2=1xhome231.1.2.3.4 LineCode=lv_line_to_home Length=13.401057472032974 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_8_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_7.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_8.1.2.3.4 LineCode=lv_line Length=6.599793312389188 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_3_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_8.1.2.3.4 Bus2=1xhome228.1.2.3.4 LineCode=lv_line_to_home Length=13.600425069388924 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_9_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_8.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_9.1.2.3.4 LineCode=lv_line Length=2.6248560711490185 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_1_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_9.1.2.3.4 Bus2=1xhome226.1.2.3.4 LineCode=lv_line_to_home Length=6.523952054050794 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_10_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_9.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_10.1.2.3.4 LineCode=lv_line Length=4.208873197888698 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_7_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_10.1.2.3.4 Bus2=1xhome232.1.2.3.4 LineCode=lv_line_to_home Length=13.807162539831038 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_11_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_10.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_11.1.2.3.4 LineCode=lv_line Length=2.4235119246331056 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_2_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_11.1.2.3.4 Bus2=1xhome227.1.2.3.4 LineCode=lv_line_to_home Length=6.302318855782968 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_12_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_11.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_12.1.2.3.4 LineCode=lv_line Length=3.964013767279264 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_8_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_12.1.2.3.4 Bus2=1xhome233.1.2.3.4 LineCode=lv_line_to_home Length=13.999712674565494 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_13_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_12.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_13.1.2.3.4 LineCode=lv_line Length=2.6673689292209217 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_0_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_13.1.2.3.4 Bus2=1xhome225.1.2.3.4 LineCode=lv_line_to_home Length=6.080802863220783 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_14_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_13.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_14.1.2.3.4 LineCode=lv_line Length=6.8366956859967996 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_15_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_14.1.2.3.4 Bus2=1xhome240.1.2.3.4 LineCode=lv_line_to_home Length=5.852659848798513 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_15_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_14.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_15.1.2.3.4 LineCode=lv_line Length=7.946164090256369 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_9_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_15.1.2.3.4 Bus2=1xhome234.1.2.3.4 LineCode=lv_line_to_home Length=13.878328314426907 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_16_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_15.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_16.1.2.3.4 LineCode=lv_line Length=6.620942779499057 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_10_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_16.1.2.3.4 Bus2=1xhome235.1.2.3.4 LineCode=lv_line_to_home Length=13.76256920036326 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_17_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_16.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_17.1.2.3.4 LineCode=lv_line Length=6.517228122839805 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_12_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_17.1.2.3.4 Bus2=1xhome237.1.2.3.4 LineCode=lv_line_to_home Length=13.648999834074463 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_18_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_17.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_18.1.2.3.4 LineCode=lv_line Length=1.2732890526693155 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_14_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_18.1.2.3.4 Bus2=1xhome239.1.2.3.4 LineCode=lv_line_to_home Length=7.4011028970345825 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_19_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_18.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_19.1.2.3.4 LineCode=lv_line Length=1.799782461279381 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_11_arch4 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_19.1.2.3.4 Bus2=1xhome236.1.2.3.4 LineCode=lv_line_to_home Length=13.593572871060386 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_20_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_19.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_20.1.2.3.4 LineCode=lv_line Length=1.5631402037330386 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_13_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_20.1.2.3.4 Bus2=1xhome238.1.2.3.4 LineCode=lv_line_to_home Length=2.7996323805112993 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_21_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_20.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_21.1.2.3.4 LineCode=lv_line Length=7.8328675248326824 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_22_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_21.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_22.1.2.3.4 LineCode=lv_line Length=10.953024125795627 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_23_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_22.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_23.1.2.3.4 LineCode=lv_line Length=3.2150075267887606 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_29_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_23.1.2.3.4 Bus2=1xhome254.1.2.3.4 LineCode=lv_line_to_home Length=2.5045449751211724 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_24_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_23.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_24.1.2.3.4 LineCode=lv_line Length=9.096449453358115 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_28_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_24.1.2.3.4 Bus2=1xhome253.1.2.3.4 LineCode=lv_line_to_home Length=13.065399415940568 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_25_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_24.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_25.1.2.3.4 LineCode=lv_line Length=13.296043733377546 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_25_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_25.1.2.3.4 Bus2=1xhome250.1.2.3.4 LineCode=lv_line_to_home Length=12.599029012804431 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_27_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_25.1.2.3.4 Bus2=1xhome252.1.2.3.4 LineCode=lv_line_to_home Length=2.88577043285013 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_26_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_25.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_26.1.2.3.4 LineCode=lv_line Length=14.217835516554082 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_22_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_26.1.2.3.4 Bus2=1xhome247.1.2.3.4 LineCode=lv_line_to_home Length=12.573886441815787 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_27_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_26.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_27.1.2.3.4 LineCode=lv_line Length=4.405914600702182 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_20_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_27.1.2.3.4 Bus2=1xhome245.1.2.3.4 LineCode=lv_line_to_home Length=12.535956486108525 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_28_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_27.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_28.1.2.3.4 LineCode=lv_line Length=4.80872308956505 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_26_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_28.1.2.3.4 Bus2=1xhome251.1.2.3.4 LineCode=lv_line_to_home Length=0.6000851212768247 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_29_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_28.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_29.1.2.3.4 LineCode=lv_line Length=0.5910929260866946 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_24_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_29.1.2.3.4 Bus2=1xhome249.1.2.3.4 LineCode=lv_line_to_home Length=0.5999928021114548 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_30_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_29.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_30.1.2.3.4 LineCode=lv_line Length=8.624220230131469 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_21_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_30.1.2.3.4 Bus2=1xhome246.1.2.3.4 LineCode=lv_line_to_home Length=0.6004751676007386 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_23_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_30.1.2.3.4 Bus2=1xhome248.1.2.3.4 LineCode=lv_line_to_home Length=0.6004751676007386 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_31_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_30.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_31.1.2.3.4 LineCode=lv_line Length=9.286126131282256 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_30_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_31.1.2.3.4 Bus2=1xhome255.1.2.3.4 LineCode=lv_line_to_home Length=0.6004539949393436 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_32_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_31.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_32.1.2.3.4 LineCode=lv_line Length=3.5125552058682636 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_33_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_32.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_33.1.2.3.4 LineCode=lv_line Length=8.13402684575355 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_41_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_33.1.2.3.4 Bus2=1xhome266.1.2.3.4 LineCode=lv_line_to_home Length=2.0917045206938334 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_34_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_33.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_34.1.2.3.4 LineCode=lv_line Length=5.385776007819961 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_35_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_34.1.2.3.4 Bus2=1xhome260.1.2.3.4 LineCode=lv_line_to_home Length=1.6780509040186744 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_35_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_34.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_35.1.2.3.4 LineCode=lv_line Length=3.6955314597751094 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_31_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_35.1.2.3.4 Bus2=1xhome256.1.2.3.4 LineCode=lv_line_to_home Length=8.750290865019188 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_36_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_35.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_36.1.2.3.4 LineCode=lv_line Length=1.6920113756561466 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_36_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_36.1.2.3.4 Bus2=1xhome261.1.2.3.4 LineCode=lv_line_to_home Length=1.2624650744951793 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_37_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_36.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_37.1.2.3.4 LineCode=lv_line Length=2.87114893966349 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_32_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_37.1.2.3.4 Bus2=1xhome257.1.2.3.4 LineCode=lv_line_to_home Length=8.349743379313692 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_38_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_37.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_38.1.2.3.4 LineCode=lv_line Length=2.7150297833173926 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_38_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_38.1.2.3.4 Bus2=1xhome263.1.2.3.4 LineCode=lv_line_to_home Length=0.8333379010614598 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_39_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_38.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_39.1.2.3.4 LineCode=lv_line Length=2.1461186674807253 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_33_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_39.1.2.3.4 Bus2=1xhome258.1.2.3.4 LineCode=lv_line_to_home Length=7.924896776369839 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_40_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_39.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_40.1.2.3.4 LineCode=lv_line Length=4.837525926885069 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_34_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_40.1.2.3.4 Bus2=1xhome259.1.2.3.4 LineCode=lv_line_to_home Length=7.501045763692681 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_41_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_40.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_41.1.2.3.4 LineCode=lv_line Length=4.291904901510072 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_37_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_41.1.2.3.4 Bus2=1xhome262.1.2.3.4 LineCode=lv_line_to_home Length=7.100246979320479 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_42_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_41.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_42.1.2.3.4 LineCode=lv_line Length=7.011609754862653 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_40_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_42.1.2.3.4 Bus2=1xhome265.1.2.3.4 LineCode=lv_line_to_home Length=3.2341434858529663 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_43_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_42.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_43.1.2.3.4 LineCode=lv_line Length=0.563843266442541 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_to_home_39_arch6 Phases=4 Bus1=lv_node_trafo1_lvnetwork9_43.1.2.3.4 Bus2=1xhome264.1.2.3.4 LineCode=lv_line_to_home Length=7.162593202656374 Units=m 
+New Line.lv_cable_trafo1_lvnetwork9_44_main_grid Phases=4 Bus1=lv_node_trafo1_lvnetwork9_43.1.2.3.4 Bus2=lv_node_trafo1_lvnetwork9_44.1.2.3.4 LineCode=lv_line Length=46.04329646501494 Units=m 
+
+! Load Definitions 
+New Load.1xhome241_Ph1 Bus1=1xhome241.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome241_Ph2 Bus1=1xhome241.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome241_Ph3 Bus1=1xhome241.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome243_Ph1 Bus1=1xhome243.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome243_Ph2 Bus1=1xhome243.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome243_Ph3 Bus1=1xhome243.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome244_Ph1 Bus1=1xhome244.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome244_Ph2 Bus1=1xhome244.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome244_Ph3 Bus1=1xhome244.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome229_Ph1 Bus1=1xhome229.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome229_Ph2 Bus1=1xhome229.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome229_Ph3 Bus1=1xhome229.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome230_Ph1 Bus1=1xhome230.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome230_Ph2 Bus1=1xhome230.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome230_Ph3 Bus1=1xhome230.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome231_Ph1 Bus1=1xhome231.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome231_Ph2 Bus1=1xhome231.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome231_Ph3 Bus1=1xhome231.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome228_Ph1 Bus1=1xhome228.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome228_Ph2 Bus1=1xhome228.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome228_Ph3 Bus1=1xhome228.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome226_Ph1 Bus1=1xhome226.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome226_Ph2 Bus1=1xhome226.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome226_Ph3 Bus1=1xhome226.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome232_Ph1 Bus1=1xhome232.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome232_Ph2 Bus1=1xhome232.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome232_Ph3 Bus1=1xhome232.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome227_Ph1 Bus1=1xhome227.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome227_Ph2 Bus1=1xhome227.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome227_Ph3 Bus1=1xhome227.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome233_Ph1 Bus1=1xhome233.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome233_Ph2 Bus1=1xhome233.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome233_Ph3 Bus1=1xhome233.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome225_Ph1 Bus1=1xhome225.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome225_Ph2 Bus1=1xhome225.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome225_Ph3 Bus1=1xhome225.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome240_Ph1 Bus1=1xhome240.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome240_Ph2 Bus1=1xhome240.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome240_Ph3 Bus1=1xhome240.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome234_Ph1 Bus1=1xhome234.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome234_Ph2 Bus1=1xhome234.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome234_Ph3 Bus1=1xhome234.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome235_Ph1 Bus1=1xhome235.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome235_Ph2 Bus1=1xhome235.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome235_Ph3 Bus1=1xhome235.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome237_Ph1 Bus1=1xhome237.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome237_Ph2 Bus1=1xhome237.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome237_Ph3 Bus1=1xhome237.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome239_Ph1 Bus1=1xhome239.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome239_Ph2 Bus1=1xhome239.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome239_Ph3 Bus1=1xhome239.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome236_Ph1 Bus1=1xhome236.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome236_Ph2 Bus1=1xhome236.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome236_Ph3 Bus1=1xhome236.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome238_Ph1 Bus1=1xhome238.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome238_Ph2 Bus1=1xhome238.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome238_Ph3 Bus1=1xhome238.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome254_Ph1 Bus1=1xhome254.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome254_Ph2 Bus1=1xhome254.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome254_Ph3 Bus1=1xhome254.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome253_Ph1 Bus1=1xhome253.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome253_Ph2 Bus1=1xhome253.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome253_Ph3 Bus1=1xhome253.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome250_Ph1 Bus1=1xhome250.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome250_Ph2 Bus1=1xhome250.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome250_Ph3 Bus1=1xhome250.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome252_Ph1 Bus1=1xhome252.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome252_Ph2 Bus1=1xhome252.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome252_Ph3 Bus1=1xhome252.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome247_Ph1 Bus1=1xhome247.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome247_Ph2 Bus1=1xhome247.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome247_Ph3 Bus1=1xhome247.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome245_Ph1 Bus1=1xhome245.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome245_Ph2 Bus1=1xhome245.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome245_Ph3 Bus1=1xhome245.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome251_Ph1 Bus1=1xhome251.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome251_Ph2 Bus1=1xhome251.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome251_Ph3 Bus1=1xhome251.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome249_Ph1 Bus1=1xhome249.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome249_Ph2 Bus1=1xhome249.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome249_Ph3 Bus1=1xhome249.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome246_Ph1 Bus1=1xhome246.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome246_Ph2 Bus1=1xhome246.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome246_Ph3 Bus1=1xhome246.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome248_Ph1 Bus1=1xhome248.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome248_Ph2 Bus1=1xhome248.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome248_Ph3 Bus1=1xhome248.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome255_Ph1 Bus1=1xhome255.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome255_Ph2 Bus1=1xhome255.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome255_Ph3 Bus1=1xhome255.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome266_Ph1 Bus1=1xhome266.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome266_Ph2 Bus1=1xhome266.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome266_Ph3 Bus1=1xhome266.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome260_Ph1 Bus1=1xhome260.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome260_Ph2 Bus1=1xhome260.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome260_Ph3 Bus1=1xhome260.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome256_Ph1 Bus1=1xhome256.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome256_Ph2 Bus1=1xhome256.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome256_Ph3 Bus1=1xhome256.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome261_Ph1 Bus1=1xhome261.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome261_Ph2 Bus1=1xhome261.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome261_Ph3 Bus1=1xhome261.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome257_Ph1 Bus1=1xhome257.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome257_Ph2 Bus1=1xhome257.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome257_Ph3 Bus1=1xhome257.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome263_Ph1 Bus1=1xhome263.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome263_Ph2 Bus1=1xhome263.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome263_Ph3 Bus1=1xhome263.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome258_Ph1 Bus1=1xhome258.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome258_Ph2 Bus1=1xhome258.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome258_Ph3 Bus1=1xhome258.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome259_Ph1 Bus1=1xhome259.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome259_Ph2 Bus1=1xhome259.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome259_Ph3 Bus1=1xhome259.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome262_Ph1 Bus1=1xhome262.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome262_Ph2 Bus1=1xhome262.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome262_Ph3 Bus1=1xhome262.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome265_Ph1 Bus1=1xhome265.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome265_Ph2 Bus1=1xhome265.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome265_Ph3 Bus1=1xhome265.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome264_Ph1 Bus1=1xhome264.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome264_Ph2 Bus1=1xhome264.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.1xhome264_Ph3 Bus1=1xhome264.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+
+! Final Configurations 
+Set VoltageBases = [10.0, 0.4] 
+CalcVoltageBases 
+SetkVBase Bus=mv_import_joint_trafo1_lvnetwork9 kVLL=10.0
+SetkVBase Bus=lvjoint12 kVLL=0.4
+
+! Solve
+Set mode=snapshot
+! Solve

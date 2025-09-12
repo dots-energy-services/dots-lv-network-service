@@ -1,0 +1,248 @@
+New   XFMRCode.10270_388_V_400_kVA_Smit  Phases=3  Windings=2
+~ wdg=1  kV =10.27   kVA=400.0 conn=delta
+~ wdg=2  kV =0.388   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.10250_420_V_250_kVA_Pauwels  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=250.0 conn=delta
+~ wdg=2  kV =0.42   kVA=250.0 conn=wye
+~ %Loadloss=1.056 %Noloadloss=0.146
+New   XFMRCode.10750_420_V_250_kVA_Pauwels  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=250.0 conn=delta
+~ wdg=2  kV =0.42   kVA=250.0 conn=wye
+~ %Loadloss=1.056 %Noloadloss=0.146
+New   XFMRCode.10250_400_V_400_kVA_Smit  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=400.0 conn=delta
+~ wdg=2  kV =0.4   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.9700_388_V_315_kVA_Volta  Phases=3  Windings=2
+~ wdg=1  kV =9.7   kVA=315.0 conn=delta
+~ wdg=2  kV =0.388   kVA=315.0 conn=wye
+~ %Loadloss=0.9841269841269842 %Noloadloss=0.13650793650793652
+New   XFMRCode.9700_388_V_160_kVA_ASCEN  Phases=3  Windings=2
+~ wdg=1  kV =9.7   kVA=160.0 conn=delta
+~ wdg=2  kV =0.388   kVA=160.0 conn=wye
+~ %Loadloss=1.190625 %Noloadloss=0.1625
+New   XFMRCode.9700_388_V_315_kVA_Pauwels  Phases=3  Windings=2
+~ wdg=1  kV =9.7   kVA=315.0 conn=delta
+~ wdg=2  kV =0.388   kVA=315.0 conn=wye
+~ %Loadloss=0.9841269841269842 %Noloadloss=0.13650793650793652
+New   XFMRCode.10000_400_V_250_kVA_Smit  Phases=3  Windings=2
+~ wdg=1  kV =10.0   kVA=250.0 conn=delta
+~ wdg=2  kV =0.4   kVA=250.0 conn=wye
+~ %Loadloss=1.056 %Noloadloss=0.146
+New   XFMRCode.10750_420_V_400_kVA_Pauwels  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.testtrafotype  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.highvoltagetesttrafotype  Phases=3  Windings=2
+~ wdg=1  kV =50.0   kVA=1000.0 conn=delta
+~ wdg=2  kV =10.0   kVA=1000.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.9750_400_V_250_kVA_IEO  Phases=3  Windings=2
+~ wdg=1  kV =9.75   kVA=250.0 conn=delta
+~ wdg=2  kV =0.4   kVA=250.0 conn=wye
+~ %Loadloss=1.056 %Noloadloss=0.146
+New   XFMRCode.9500_380_V_200_kVA_Onbekend  Phases=3  Windings=2
+~ wdg=1  kV =9.5   kVA=200.0 conn=delta
+~ wdg=2  kV =0.38   kVA=200.0 conn=wye
+~ %Loadloss=1.1 %Noloadloss=0.15
+New   XFMRCode.10750_420_V_400_kVA_IEO  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.10750_420_V_630_kVA_ELTAS  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=630.0 conn=delta
+~ wdg=2  kV =0.42   kVA=630.0 conn=wye
+~ %Loadloss=0.8253968253968255 %Noloadloss=0.11825396825396825
+New   XFMRCode.10250_400_V_400_kVA_IEO  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=400.0 conn=delta
+~ wdg=2  kV =0.4   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.10250_400_V_200_kVA_IEO  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=200.0 conn=delta
+~ wdg=2  kV =0.4   kVA=200.0 conn=wye
+~ %Loadloss=0.00131 %Noloadloss=0.00019999999999999998
+New   XFMRCode.10250_400_V_250_kVA_IEO  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=250.0 conn=delta
+~ wdg=2  kV =0.4   kVA=250.0 conn=wye
+~ %Loadloss=1.056 %Noloadloss=0.146
+New   XFMRCode.10000_380_V_630_kVA_ACEC  Phases=3  Windings=2
+~ wdg=1  kV =10.0   kVA=630.0 conn=delta
+~ wdg=2  kV =0.38   kVA=630.0 conn=wye
+~ %Loadloss=0.8095238095238094 %Noloadloss=0.16952380952380955
+New   XFMRCode.10250_400_V_400_kVA_Lepper_Dom  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=400.0 conn=delta
+~ wdg=2  kV =0.4   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.12875
+New   XFMRCode.10750_420_V_250_kVA_SGB  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=250.0 conn=delta
+~ wdg=2  kV =0.42   kVA=250.0 conn=wye
+~ %Loadloss=1.056 %Noloadloss=0.146
+New   XFMRCode.10250_400_V_200_kVA_Smit  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=200.0 conn=delta
+~ wdg=2  kV =0.4   kVA=200.0 conn=wye
+~ %Loadloss=1.264 %Noloadloss=0.213
+New   XFMRCode.630_11250_10250_420_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=630.0 conn=delta
+~ wdg=2  kV =0.42   kVA=630.0 conn=wye
+~ %Loadloss=0.8253968253968255 %Noloadloss=0.09523809523809523
+New   XFMRCode.400_10750_9750_400_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=400.0 conn=delta
+~ wdg=2  kV =0.4   kVA=400.0 conn=wye
+~ %Loadloss=1.0 %Noloadloss=0.12875
+New   XFMRCode.400_10p75_0p42_Dyn5_N2009_SGB  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=0.9375 %Noloadloss=0.1075
+New   XFMRCode.630_11000_10000_420_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.5   kVA=630.0 conn=delta
+~ wdg=2  kV =0.42   kVA=630.0 conn=wye
+~ %Loadloss=0.6666666666666667 %Noloadloss=0.15396825396825398
+New   XFMRCode.400_11250_10250_420_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=1.0 %Noloadloss=0.15
+New   XFMRCode.200_10250_9500_380_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.0   kVA=200.0 conn=delta
+~ wdg=2  kV =0.38   kVA=200.0 conn=wye
+~ %Loadloss=1.005 %Noloadloss=0.314
+New   XFMRCode.315_10750_9750_380_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=315.0 conn=delta
+~ wdg=2  kV =0.4   kVA=315.0 conn=wye
+~ %Loadloss=1.0476190476190477 %Noloadloss=0.14285714285714285
+New   XFMRCode.630_10750_9750_400_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=630.0 conn=delta
+~ wdg=2  kV =0.4   kVA=630.0 conn=wye
+~ %Loadloss=0.8571428571428572 %Noloadloss=0.11825396825396825
+New   XFMRCode.630_11250_10000_420_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=630.0 conn=delta
+~ wdg=2  kV =0.42   kVA=630.0 conn=wye
+~ %Loadloss=0.8603174603174604 %Noloadloss=0.1349206349206349
+New   XFMRCode.100_10750_9750_400_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=100.0 conn=delta
+~ wdg=2  kV =0.4   kVA=100.0 conn=wye
+~ %Loadloss=1.4 %Noloadloss=0.19
+New   XFMRCode.250_11250_10250_420_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=250.0 conn=delta
+~ wdg=2  kV =0.42   kVA=250.0 conn=wye
+~ %Loadloss=1.056 %Noloadloss=0.146
+New   XFMRCode.100_10250_9250_381_DYN5  Phases=3  Windings=2
+~ wdg=1  kV =10.0   kVA=100.0 conn=delta
+~ wdg=2  kV =0.38   kVA=100.0 conn=wye
+~ %Loadloss=1.406 %Noloadloss=0.233
+New   XFMRCode.10750_9750_400_250_5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=250.0 conn=delta
+~ wdg=2  kV =0.4   kVA=250.0 conn=wye
+~ %Loadloss=1.3 %Noloadloss=0.12
+New   XFMRCode.10750_9750_400_100_5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=100.0 conn=delta
+~ wdg=2  kV =0.4   kVA=100.0 conn=wye
+~ %Loadloss=1.7500000000000002 %Noloadloss=0.145
+New   XFMRCode.10750_9750_398_200_5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=200.0 conn=delta
+~ wdg=2  kV =0.398   kVA=200.0 conn=wye
+~ %Loadloss=1.25 %Noloadloss=0.155
+New   XFMRCode.11250_10250_420_250_5  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=250.0 conn=delta
+~ wdg=2  kV =0.42   kVA=250.0 conn=wye
+~ %Loadloss=1.3 %Noloadloss=0.12
+New   XFMRCode.10750_9750_400_400_5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=400.0 conn=delta
+~ wdg=2  kV =0.4   kVA=400.0 conn=wye
+~ %Loadloss=1.15 %Noloadloss=0.1075
+New   XFMRCode.11000_10000_420_250_5  Phases=3  Windings=2
+~ wdg=1  kV =10.5   kVA=250.0 conn=delta
+~ wdg=2  kV =0.42   kVA=250.0 conn=wye
+~ %Loadloss=1.3 %Noloadloss=0.12
+New   XFMRCode.11000_10000_420_400_5  Phases=3  Windings=2
+~ wdg=1  kV =10.5   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=1.15 %Noloadloss=0.1075
+New   XFMRCode.10750_10000_398_100_4  Phases=3  Windings=2
+~ wdg=1  kV =10.5   kVA=100.0 conn=delta
+~ wdg=2  kV =0.398   kVA=100.0 conn=wye
+~ %Loadloss=1.7500000000000002 %Noloadloss=0.145
+New   XFMRCode.10750_9750_400_160_5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=160.0 conn=delta
+~ wdg=2  kV =0.4   kVA=160.0 conn=wye
+~ %Loadloss=1.46875 %Noloadloss=0.13124999999999998
+New   XFMRCode.10750_10000_398_200_4  Phases=3  Windings=2
+~ wdg=1  kV =10.5   kVA=200.0 conn=delta
+~ wdg=2  kV =0.398   kVA=200.0 conn=wye
+~ %Loadloss=1.25 %Noloadloss=0.155
+New   XFMRCode.11250_10250_420_400_5  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=1.15 %Noloadloss=0.1075
+New   XFMRCode.10500_10000_398_315_3  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=315.0 conn=delta
+~ wdg=2  kV =0.398   kVA=315.0 conn=wye
+~ %Loadloss=1.2380952380952381 %Noloadloss=0.11428571428571427
+New   XFMRCode.11250_10250_420_630_5  Phases=3  Windings=2
+~ wdg=1  kV =10.75   kVA=630.0 conn=delta
+~ wdg=2  kV =0.42   kVA=630.0 conn=wye
+~ %Loadloss=1.0317460317460316 %Noloadloss=0.09523809523809523
+New   XFMRCode.10750_9750_400_200_5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=200.0 conn=delta
+~ wdg=2  kV =0.4   kVA=200.0 conn=wye
+~ %Loadloss=1.25 %Noloadloss=0.155
+New   XFMRCode.10250_400_V__630_kVA  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=630.0 conn=delta
+~ wdg=2  kV =0.4   kVA=630.0 conn=wye
+~ %Loadloss=0.8571428571428572 %Noloadloss=0.11904761904761905
+New   XFMRCode.13500_12000_400_400_7  Phases=3  Windings=2
+~ wdg=1  kV =12.75   kVA=400.0 conn=delta
+~ wdg=2  kV =0.4   kVA=400.0 conn=wye
+~ %Loadloss=1.15 %Noloadloss=0.1075
+New   XFMRCode.13000_12250_393_300_4  Phases=3  Windings=2
+~ wdg=1  kV =12.75   kVA=300.0 conn=delta
+~ wdg=2  kV =0.393   kVA=300.0 conn=wye
+~ %Loadloss=1.3 %Noloadloss=0.12
+New   XFMRCode.13500_12500_400_400_5  Phases=3  Windings=2
+~ wdg=1  kV =13.0   kVA=400.0 conn=delta
+~ wdg=2  kV =0.4   kVA=400.0 conn=wye
+~ %Loadloss=1.15 %Noloadloss=0.1075
+New   XFMRCode.13500_12500_420_400_5  Phases=3  Windings=2
+~ wdg=1  kV =13.0   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=1.15 %Noloadloss=0.1075
+New   XFMRCode.13500_12500_420_630_5  Phases=3  Windings=2
+~ wdg=1  kV =13.0   kVA=630.0 conn=delta
+~ wdg=2  kV =0.42   kVA=630.0 conn=wye
+~ %Loadloss=1.0317460317460316 %Noloadloss=0.09523809523809523
+New   XFMRCode.13500_12000_400_630_7  Phases=3  Windings=2
+~ wdg=1  kV =12.75   kVA=630.0 conn=delta
+~ wdg=2  kV =0.4   kVA=630.0 conn=wye
+~ %Loadloss=1.0317460317460316 %Noloadloss=0.09523809523809523
+New   XFMRCode.13500_12500_400_630_5  Phases=3  Windings=2
+~ wdg=1  kV =13.0   kVA=630.0 conn=delta
+~ wdg=2  kV =0.4   kVA=630.0 conn=wye
+~ %Loadloss=1.0317460317460316 %Noloadloss=0.09523809523809523
+New   XFMRCode.24000_22000_420_400_5  Phases=3  Windings=2
+~ wdg=1  kV =23.0   kVA=400.0 conn=delta
+~ wdg=2  kV =0.42   kVA=400.0 conn=wye
+~ %Loadloss=1.15 %Noloadloss=0.1075
+New   XFMRCode.23500_21500_398_630_5  Phases=3  Windings=2
+~ wdg=1  kV =22.5   kVA=630.0 conn=delta
+~ wdg=2  kV =0.398   kVA=630.0 conn=wye
+~ %Loadloss=1.0317460317460316 %Noloadloss=0.09523809523809523
+New   XFMRCode.23500_21500_400_1000_5  Phases=3  Windings=2
+~ wdg=1  kV =22.5   kVA=1000.0 conn=delta
+~ wdg=2  kV =0.4   kVA=1000.0 conn=wye
+~ %Loadloss=1.05 %Noloadloss=0.07700000000000001
+New   XFMRCode.10750_10000_400_200_5  Phases=3  Windings=2
+~ wdg=1  kV =10.375   kVA=200.0 conn=delta
+~ wdg=2  kV =0.4   kVA=200.0 conn=wye
+~ %Loadloss=1.25 %Noloadloss=0.155
+New   XFMRCode.10750_9750_400_630_5  Phases=3  Windings=2
+~ wdg=1  kV =10.25   kVA=630.0 conn=delta
+~ wdg=2  kV =0.4   kVA=630.0 conn=wye
+~ %Loadloss=1.0317460317460316 %Noloadloss=0.09523809523809523
+New   XFMRCode.10750_10000_398_300_4  Phases=3  Windings=2
+~ wdg=1  kV =10.5   kVA=300.0 conn=delta
+~ wdg=2  kV =0.398   kVA=300.0 conn=wye
+~ %Loadloss=1.3 %Noloadloss=0.12

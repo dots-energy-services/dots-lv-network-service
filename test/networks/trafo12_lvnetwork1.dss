@@ -1,0 +1,35 @@
+Clear 
+
+Set DefaultBaseFrequency=50 
+
+! Swing or Source Bar 
+New circuit.trafo12_lvnetwork1_1 phases=3 pu=1.0 basekv=10.0 bus1=mv_import_joint_trafo12_lvnetwork1 
+
+! Trafo XFMRCodes 
+Redirect XFMRCode.dss 
+
+! Trafo 
+New Transformer.transformer73 Xfmrcode=testtrafotype Buses=[mv_import_joint_trafo12_lvnetwork1  lvjoint75.1.2.3] kVs=[10.0 0.4] 
+
+! LineCodes 
+Redirect LineCode.dss 
+
+! Lines 
+New Line.lv_cable_trafo12_lvnetwork1_2_main_grid Phases=4 Bus1=lvjoint75.1.2.3.0 Bus2=lv_node_trafo12_lvnetwork1_2.1.2.3.4 LineCode=lv_line Length=103.51729768359336 Units=m 
+New Line.lv_cable_trafo12_lvnetwork1_3_main_grid Phases=4 Bus1=lv_node_trafo12_lvnetwork1_2.1.2.3.4 Bus2=lv_node_trafo12_lvnetwork1_3.1.2.3.4 LineCode=lv_line Length=28.552218964223332 Units=m 
+New Line.lv_cable_trafo12_lvnetwork1_to_home_0_arch3 Phases=4 Bus1=lv_node_trafo12_lvnetwork1_3.1.2.3.4 Bus2=16xhome1026.1.2.3.4 LineCode=lv_line_to_home Length=1.1687389692454695 Units=m 
+
+! Load Definitions 
+New Load.16xhome1026_Ph1 Bus1=16xhome1026.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.16xhome1026_Ph2 Bus1=16xhome1026.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+New Load.16xhome1026_Ph3 Bus1=16xhome1026.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
+
+! Final Configurations 
+Set VoltageBases = [10.0, 0.4] 
+CalcVoltageBases 
+SetkVBase Bus=mv_import_joint_trafo12_lvnetwork1 kVLL=10.0
+SetkVBase Bus=lvjoint75 kVLL=0.4
+
+! Solve
+Set mode=snapshot
+! Solve

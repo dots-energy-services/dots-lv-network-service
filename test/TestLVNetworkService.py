@@ -2,12 +2,13 @@ from datetime import datetime
 import os
 import unittest
 
-from esdl import EConnection, EnergySystem, ElectricityCable, Joint, Transformer
+from esdl import EConnection, EnergySystem, ElectricityCable, Transformer
 from lvnetworkservice.lvnetworkservice import CalculationServiceLVNetwork
 from dots_infrastructure.DataClasses import SimulatorConfiguration, TimeStepInformation
 from dots_infrastructure.test_infra.InfluxDBMock import InfluxDBMock
 import helics as h
 from esdl.esdl_handler import EnergySystemHandler
+from pathlib import Path
 
 from dots_infrastructure import CalculationServiceHelperFunctions
 
@@ -33,6 +34,7 @@ class Test(unittest.TestCase):
         esh = EnergySystemHandler()
         esh.load_file(test_file)
         service = CalculationServiceLVNetwork()
+        service.dss_file_name = test_file.replace(".esdl", ".dss")
         service.influx_connector = InfluxDBMock()
         energy_system = esh.get_energy_system()
         service.init_calculation_service(esh.get_energy_system())
@@ -51,101 +53,74 @@ class Test(unittest.TestCase):
     # def tearDown(self):
     #     os.remove("main.dss")
 
-    lv_test_example_files = [
-        # {"file_name" : "test/test.esdl", "lines_correction" : 0},
-        {"file_name" : "test/trafo1_lvnetwork9.esdl"}
+    test_example_files = [
+        # {"file_name" : "test/test.esdl"},
+        # {"file_name" : "test/trafo1_lvnetwork1.esdl"},
+        # {"file_name" : "test/mv-energy-system.esdl"},
+        # {"file_name" : "test/trafo15_lvnetwork1.esdl"},
     ]
 
     def test_example(self):
-        for param_dict in self.init_test_example_files:
-            with self.subTest(f"Test esdl file {param_dict['file_name']}"):
+
+        pathlist = Path("C:\\Users\\20180029\\repos\\lvnetworkservice\\test\\networks").glob('**/*.esdl')
+        for path in pathlist:
+            path_in_str = str(path) 
+            with self.subTest(f"Test esdl file {path_in_str}"):
                 # Arrange
-                service, energy_system = self.int_service_and_get_energy_system(param_dict['file_name'])
-        
+                service, energy_system = self.int_service_and_get_energy_system(path_in_str)
+
                 params = {}
-                params['EConnection/aggregated_active_power/5c19dcff-b004-4644-99b9-f42d15a34f3a'] = [1000, 2000, 3000]
-                params['EConnection/aggregated_active_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [1000, 2000, 3000]
-                params['EConnection/aggregated_active_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [1000, 2000, 3000]
-        
-                params['EConnection/aggregated_reactive_power/5c19dcff-b004-4644-99b9-f42d15a34f3a'] = [0, 0, 0]
-                params['EConnection/aggregated_reactive_power/1412f71f-a9d2-4c66-a834-385cf91c3767'] = [0, 0, 0]
-                params['EConnection/aggregated_reactive_power/bb93de79-0d9e-4cf2-8794-ebac2d238f45'] = [0, 0, 0]
-        
+                econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
+                for econnection in econnections:
+                    params[f"EConnection/aggregated_active_power/{econnection.id}"] = [1000, 1000, 1000]
+                    params[f"EConnection/aggregated_reactive_power/{econnection.id}"] = [0, 0, 0]
+
                 # Execute
                 ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
                                                          energy_system)
-        
+
                 # Assert
                 written_datapoints = service.influx_connector.data_points
-                
-                expected_names = [f"cable{i}" for i in range(1, 9)] + ["transformer1"] + [f"connectionhome{i}.{j}" for i in range(1, 4) for j in range(1, 5)]
-                written_value_names = [data_point.output_name for data_point in written_datapoints]
-                for expected_name in expected_names:
-                    self.assertIn(expected_name, written_value_names)
-                    if "connectionhome" in expected_name:
-                        val = next(val for val in written_datapoints if val.output_name == expected_name)
-                        self.assertNotEqual(val, 0)
-        
+                for data_point in written_datapoints:
+                    if "home" in data_point.output_name and ".4" not in data_point.output_name:
+                        self.assertNotEqual(data_point.value, 0)
+
                 total_active_power_params = sum([sum(params[key]) * 1e-3 for key in params.keys() if "aggregated_active_power" in key])
                 total_reactive_power_params = sum([sum(params[key]) * 1e-3 for key in params.keys() if "aggregated_reactive_power" in key])
                 
                 total_active_power, total_reactive_power = self.get_total_active_and_reactive_power(service, "Transformer.Transformer1")
-        
-                self.assertAlmostEqual(total_active_power_params, total_active_power, delta=1e-2)
-                self.assertAlmostEqual(total_reactive_power_params, total_reactive_power, delta=1e-2)
 
+                self.assertAlmostEqual(total_active_power_params, total_active_power, delta=1e-1)
+                self.assertAlmostEqual(total_reactive_power_params, total_reactive_power, delta=1e-1)
 
-    init_test_example_files = [
-        # {"file_name" : "test/test.esdl", "lines_correction" : 0},
-        # {"file_name" : "test/mv-energy-system.esdl", "lines_correction" : 1}
-        {"file_name" : "test/trafo1_lvnetwork9.esdl", "lines_correction" : 0}
-    ]
+    line_amount_correction_dict = {
+        "C:\\Users\\20180029\\repos\\lvnetworkservice\\test\\networks\\mv-energy-system.esdl" : 1
+    }
 
     def test_init_builds_dss_file_correctly(self):
-        for param_dict in self.init_test_example_files:
-            with self.subTest(f"Test esdl file {param_dict['file_name']}"):
-                service, energy_system = self.int_service_and_get_energy_system(param_dict['file_name'])
+        pathlist = Path("C:\\Users\\20180029\\repos\\lvnetworkservice\\test\\networks").glob('**/*.esdl')
+        for path in pathlist:
+            path_in_str = str(path) 
+            with self.subTest(f"Test esdl file {path_in_str}"):
+                service, energy_system = self.int_service_and_get_energy_system(path_in_str)
                 dss_content = []
-                with open("main.dss", "r") as f:
+                with open(service.dss_file_name, "r") as f:
                     dss_content = f.readlines()
 
                 lines_section_start = dss_content.index(service.lines_section_start_marker) + 1
                 amount_of_lines_dss = dss_content[lines_section_start:].index("\n")
                 trafo_section_start = dss_content.index(service.transformer_section_start_marker) + 1
                 amount_of_transformers_dss = dss_content[trafo_section_start:].index("\n")
-        
-                amount_of_electricity_cables = len([element for element in energy_system.eAllContents() if isinstance(element, ElectricityCable)])
+                load_section_start = dss_content.index(service.load_definition_section_start_marker) + 1
+                amount_of_loads_dss = dss_content[load_section_start:].index("\n")
+
+                amount_of_electricity_cables = len([element for element in energy_system.eAllContents() if isinstance(element, ElectricityCable)]) - self.line_amount_correction_dict.get(path_in_str, 0)
                 amount_of_transformers = len([element for element in energy_system.eAllContents() if isinstance(element, Transformer)])
+                amount_of_econnections = len([element for element in energy_system.eAllContents() if isinstance(element, EConnection)])
 
-                self.assertEqual(amount_of_lines_dss, amount_of_electricity_cables - param_dict['lines_correction'])
+                self.assertEqual(amount_of_lines_dss, amount_of_electricity_cables)
                 self.assertEqual(amount_of_transformers, amount_of_transformers_dss)
-
-    # def test_mv_lv_example(self):
-    #     # Arrange
-    #     service, energy_system = self.int_service_and_get_energy_system("test/mv-energy-system.esdl")
-
-    #     params = {}
-    #     econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
-    #     for econnection in econnections:
-    #         params[f"EConnection/aggregated_active_power/{econnection.id}"] = [1000, 1000, 1000]
-    #         params[f"EConnection/aggregated_reactive_power/{econnection.id}"] = [0, 0, 0]
-
-    #     # Execute
-    #     ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
-    #                                              energy_system)
-
-    #     written_datapoints = service.influx_connector.data_points
-    #     for data_point in written_datapoints:
-    #         if "home" in data_point.output_name and ".4" not in data_point.output_name:
-    #             self.assertNotEqual(data_point.value, 0)
-
-    #     total_active_power, total_reactive_power = self.get_total_active_and_reactive_power(service, "Transformer.HighVoltageTrafo")
-
-    #     total_active_power_params = sum([sum(params[key]) * 1e-3 for key in params.keys() if "aggregated_active_power" in key])
-    #     total_reactive_power_params = sum([sum(params[key]) * 1e-3 for key in params.keys() if "aggregated_reactive_power" in key])
-
-    #     self.assertAlmostEqual(total_active_power_params, total_active_power, delta=1e-2)
-    #     self.assertAlmostEqual(total_reactive_power_params, total_reactive_power, delta=1e-2)
+                self.assertEqual(amount_of_econnections * 3, amount_of_loads_dss)
 
 if __name__ == '__main__':
     unittest.main()

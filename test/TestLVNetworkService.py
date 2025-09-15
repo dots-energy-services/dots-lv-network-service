@@ -40,7 +40,7 @@ class Test(unittest.TestCase):
         service.init_calculation_service(esh.get_energy_system())
         return service, energy_system
     
-    def get_total_active_and_reactive_power(self, service: CalculationServiceLVNetwork, swing_node_trafo_name : str) -> tuple[float, float]:
+    def get_total_active_and_reactive_power(self, service: CalculationServiceLVNetwork, swing_node_trafo_name : str) -> tuple[float, float, float, float]:
         active_circuit = service.dss_engine.ActiveCircuit
         active_power_losses = active_circuit.Losses[0] * 1e-3
         reactive_power_losses = active_circuit.Losses[1] * 1e-3
@@ -48,7 +48,7 @@ class Test(unittest.TestCase):
         transformer_powers = active_circuit.ActiveElement.Powers
         total_active_power_transformer = sum([transformer_powers[0], transformer_powers[2], transformer_powers[4], transformer_powers[6]])
         total_reactive_power_transformer = sum([transformer_powers[1], transformer_powers[3], transformer_powers[5], transformer_powers[7]])
-        return total_active_power_transformer - active_power_losses, total_reactive_power_transformer - reactive_power_losses
+        return total_active_power_transformer, total_reactive_power_transformer, active_power_losses, reactive_power_losses
     
     # def tearDown(self):
     #     os.remove("main.dss")
@@ -88,10 +88,10 @@ class Test(unittest.TestCase):
                 total_active_power_params = sum([sum(params[key]) * 1e-3 for key in params.keys() if "aggregated_active_power" in key])
                 total_reactive_power_params = sum([sum(params[key]) * 1e-3 for key in params.keys() if "aggregated_reactive_power" in key])
                 
-                total_active_power, total_reactive_power = self.get_total_active_and_reactive_power(service, "Transformer.Transformer1")
+                total_active_power, total_reactive_power, active_power_losses, reactive_power_losses = self.get_total_active_and_reactive_power(service, "Transformer.Transformer1")
 
-                self.assertAlmostEqual(total_active_power_params, total_active_power, delta=1e-1)
-                self.assertAlmostEqual(total_reactive_power_params, total_reactive_power, delta=1e-1)
+                self.assertAlmostEqual(total_active_power_params + active_power_losses, total_active_power, delta=1e-1)
+                self.assertAlmostEqual(total_reactive_power_params + reactive_power_losses, total_reactive_power, delta=1e-1)
 
     line_amount_correction_dict = {
         "C:\\Users\\20180029\\repos\\lvnetworkservice\\test\\networks\\mv-energy-system.esdl" : 1

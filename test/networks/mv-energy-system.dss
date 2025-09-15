@@ -3,7 +3,7 @@ Clear
 Set DefaultBaseFrequency=50 
 
 ! Swing or Source Bar 
-New circuit.To-look-at-0.3_1 phases=3 pu=1.0 basekv=50.0 bus1=jointHighVoltageTrafo_import 
+New circuit.To-look-at-0.3_1 phases=3 pu=1.0 basekv=150.0 bus1=jointHighVoltageTrafo_import 
 
 ! Trafo XFMRCodes 
 Redirect XFMRCode.dss 
@@ -25,7 +25,7 @@ New Transformer.transformer73 Xfmrcode=testtrafotype Buses=[joint73  lvjoint75.1
 New Transformer.transformer80 Xfmrcode=testtrafotype Buses=[joint80  lvjoint82.1.2.3] kVs=[10.0 0.4] 
 New Transformer.transformer84 Xfmrcode=testtrafotype Buses=[joint84  lvjoint86.1.2.3] kVs=[10.0 0.4] 
 New Transformer.transformer91 Xfmrcode=testtrafotype Buses=[joint91  lvjoint93.1.2.3] kVs=[10.0 0.4] 
-New Transformer.HighVoltageTrafo Xfmrcode=testtrafotype Buses=[jointHighVoltageTrafo_import  jointHighVoltageTrafo.1.2.3] kVs=[50.0 10.0] 
+New Transformer.HighVoltageTrafo Xfmrcode=highvoltagetesttrafotype  Buses=[jointHighVoltageTrafo_import  jointHighVoltageTrafo.1.2.3] kVs=[150.0 10.0] 
 
 ! LineCodes 
 Redirect LineCode.dss 
@@ -10162,7 +10162,7 @@ New Load.1xhome1976_Ph2 Bus1=1xhome1976.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW
 New Load.1xhome1976_Ph3 Bus1=1xhome1976.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 
 
 ! Final Configurations 
-Set VoltageBases = [50.0, 10.0, 0.4] 
+Set VoltageBases = [150.0, 10.0, 0.4] 
 CalcVoltageBases 
 SetkVBase Bus=joint5 kVLL=10.0
 SetkVBase Bus=joint10 kVLL=10.0
@@ -10180,7 +10180,7 @@ SetkVBase Bus=joint73 kVLL=10.0
 SetkVBase Bus=joint80 kVLL=10.0
 SetkVBase Bus=joint84 kVLL=10.0
 SetkVBase Bus=joint91 kVLL=10.0
-SetkVBase Bus=jointHighVoltageTrafo_import kVLL=50.0
+SetkVBase Bus=jointHighVoltageTrafo_import kVLL=150.0
 SetkVBase Bus=lvjoint7 kVLL=0.4
 SetkVBase Bus=lvjoint12 kVLL=0.4
 SetkVBase Bus=lvjoint16 kVLL=0.4

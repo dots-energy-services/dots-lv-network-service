@@ -3,7 +3,7 @@ Clear
 Set DefaultBaseFrequency=50 
 
 ! Swing or Source Bar 
-New circuit.To-look-at-0.3_1 phases=3 pu=1.0 basekv=150.0 bus1=jointHighVoltageTrafo_import 
+New circuit.To-look-at-0.3_1 phases=3 pu=1.0 basekv=150.0 bus1=jointHighVoltageTrafo_import
 
 ! Trafo XFMRCodes 
 Redirect XFMRCode.dss 
@@ -10202,3 +10202,4 @@ SetkVBase Bus=jointHighVoltageTrafo kVLL=10.0
 ! Solve
 Set mode=snapshot
 ! Solve
+

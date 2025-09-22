@@ -166,7 +166,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
     def build_mv_network_graph(self) -> nx.Graph:
         graph = nx.Graph()
         if self.dss_engine.ActiveCircuit.Lines.AllNames != ['NONE']:
-            self.dss_engine.ActiveCircuit.SetActiveElement(self.dss_engine.ActiveCircuit.Lines.AllNames[0])
+            self.dss_engine.ActiveCircuit.SetActiveElement(f"Line.{self.dss_engine.ActiveCircuit.Lines.AllNames[0]}")
             property_mapping = {
                 "Bus1" : "",
                 "Bus2" : "",

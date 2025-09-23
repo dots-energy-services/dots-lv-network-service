@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "lvnetworkservice"
 version = "0.0.1"
 authors = [
-  { name="Example Author", email="author@example.com" },
+  { name="Joeri van der Leden", email="author@example.com" },
 ]
 description = "A small example package"
 readme = "README.md"

@@ -26,6 +26,8 @@ class PowerFlowResult:
     bus_voltage_mag : List[float]
     total_line_current_mag : List[float]
     transformer_power : List[float]
+    total_line_current_lim : List[float]
+    transformer_power_lim : List[float]
 
 class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
@@ -344,9 +346,10 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         start = time.time()
         self.write_results_to_influx(esdl_id, simulation_time, results)
         end = time.time()
-        LOGGER.info(f"Processing results took {end - start} seconds")
+        LOGGER.info(f"Writing results took {end - start} seconds")
 
         return {}
+
 
     def set_load_flow_parameters(self, param_dict : dict):
         # START user calc
@@ -354,7 +357,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         LOGGER.debug('OpenDSS add loads to network')
 
-        self.dss_engine.ActiveCircuit.SetActiveElement(self.dss_engine.ActiveCircuit.Loads.AllNames[0])
+        self.dss_engine.ActiveCircuit.SetActiveElement(f"{self.ems_list[list(self.ems_list.keys())[0]][0]}")
         property_mapping : dict [str, int] = {
             "kW" : 0,
             "kvar" : 0
@@ -374,8 +377,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                         raise ValueError("Property mapping for kW or kvar is incorrect")
                     active_ckt_element.Properties[property_mapping["kW"]].Val = active_load
                     active_ckt_element.Properties[property_mapping["kvar"]].Val = reactive_load
-        
-        self.dss_engine.ActiveCircuit.SetActiveElement(self.dss_engine.ActiveCircuit.Loads.AllNames[0])
+
 
     def do_load_flow(self):
         LOGGER.debug('OpenDSS solve loadflow calculation')
@@ -420,33 +422,37 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 'Transformer.{0}'.format(self.dss_engine.ActiveCircuit.Transformers.AllNames[t]))
             TransformerPower.append(round(math.sqrt(self.dss_engine.ActiveCircuit.ActiveElement.TotalPowers[0] ** 2 +
                                                     self.dss_engine.ActiveCircuit.ActiveElement.TotalPowers[1] ** 2), 2))
-
             TransformerPowerLim.append((self.dss_engine.ActiveCircuit.Transformers.kVA))
             self.dss_engine.ActiveCircuit.Transformers.Next
 
-        return PowerFlowResult(BusVoltageMag, TotalLineCurrentMag, TransformerPower)
+        return PowerFlowResult(BusVoltageMag, TotalLineCurrentMag, TransformerPower, TotalLineCurrentLim, TransformerPowerLim)
 
     def write_results_to_influx(self, esdl_id : EsdlId, simulation_time : datetime, power_flow_result : PowerFlowResult):
         # Write results to influxdb
-        amount_of_node_values = len([name for name in self.all_node_names if "home" in name.lower()])
-        amount_of_line_values = len(self.all_line_names)
-        amount_of_transformer_values = len(self.dss_engine.ActiveCircuit.Transformers.AllNames)
-        LOGGER.info(f'Writing {amount_of_node_values} node values to influxdb')
-        LOGGER.info(f'Writing {amount_of_line_values} line values to influxdb')
-        LOGGER.info(f'Writing {amount_of_transformer_values} transformer values to influxdb')
-        LOGGER.info(f'Writing a total of {sum([amount_of_line_values, amount_of_transformer_values, amount_of_node_values])} values to influxdb')
+        amount_of_node_values = len(power_flow_result.bus_voltage_mag)
+        amount_of_line_values = len(power_flow_result.total_line_current_mag) + len(power_flow_result.total_line_current_lim)
+        amount_of_transformer_values = len(power_flow_result.transformer_power) + len(power_flow_result.transformer_power_lim)
+        LOGGER.debug(f'Writing {amount_of_node_values} node values to influxdb')
+        LOGGER.debug(f'Writing {amount_of_line_values} line values to influxdb')
+        LOGGER.debug(f'Writing {amount_of_transformer_values} transformer values to influxdb')
+        LOGGER.debug(f'Writing a total of {sum([amount_of_line_values, amount_of_transformer_values, amount_of_node_values])} values to influxdb')
+        line_limit_names = [x + '_limit' for x in self.all_line_names]
         for d in range(len(self.all_node_names)):
-            if "home" in self.all_node_names[d].lower():
-                voltage_value = power_flow_result.bus_voltage_mag[d]
-                self.influx_connector.set_time_step_data_point(esdl_id, self.all_node_names[d],
-                                                          simulation_time, voltage_value)
+            voltage_value = power_flow_result.bus_voltage_mag[d]
+            self.influx_connector.set_time_step_data_point(esdl_id, self.all_node_names[d],
+                                                      simulation_time, voltage_value)
         for d in range(len(self.all_line_names)):
             self.influx_connector.set_time_step_data_point(esdl_id, self.all_line_names[d],
                                                           simulation_time, power_flow_result.total_line_current_mag[d])
+            self.influx_connector.set_time_step_data_point(esdl_id, line_limit_names[d], simulation_time,
+                                                          power_flow_result.total_line_current_lim[d])
         for d in range(len(self.dss_engine.ActiveCircuit.Transformers.AllNames)):
+            name = self.dss_engine.ActiveCircuit.Transformers.AllNames[d]
             self.influx_connector.set_time_step_data_point(esdl_id,
                                                           self.dss_engine.ActiveCircuit.Transformers.AllNames[d],
-                                                          simulation_time, power_flow_result.bus_voltage_mag[d])
+                                                          simulation_time, power_flow_result.transformer_power[d])
+            self.influx_connector.set_time_step_data_point(esdl_id, f"{name}_limit", simulation_time,
+                                                          power_flow_result.transformer_power_lim[d])
 
 if __name__ == "__main__":
     helics_simulation_executor = CalculationServiceLVNetwork()

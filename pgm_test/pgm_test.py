@@ -3,6 +3,7 @@ import dss
 from dss import IDSS
 import numpy as np
 import pandas as pd
+from power_grid_model_io.converters import PgmJsonConverter
 
 from power_grid_model.validation import assert_valid_input_data
 from power_grid_model import (
@@ -363,6 +364,8 @@ assert_valid_input_data(input_data=input_data, calculation_type=CalculationType.
 
 # construction
 model = PowerGridModel(input_data)
+converter = PgmJsonConverter(destination_file="out.json")
+converter.save(input_data)
 
 # one-time power flow calculation
 output_data = model.calculate_power_flow(

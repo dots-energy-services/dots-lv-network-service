@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
     def tearDown(self):
         os.remove(Path("main.dss"))
 
-    def test_example(self):
+    def test_power_flow_input_power_equals_output_power(self):
         pathlist = Path("").glob('**/*.esdl')
         for path in pathlist:
             path_in_str = str(path) 
@@ -110,6 +110,35 @@ class Test(unittest.TestCase):
                 self.assertEqual(amount_of_lines_dss, amount_of_electricity_cables)
                 self.assertEqual(amount_of_transformers, amount_of_transformers_dss)
                 self.assertEqual(amount_of_econnections * 3, amount_of_loads_dss)
+
+
+    def test_correct_values_are_written_to_the_correct_fields(self):
+        # Arrange
+        service, energy_system = self.int_service_and_get_energy_system("test.esdl")
+
+        params = {}
+        econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
+        for econnection in econnections:
+            params[f"EConnection/aggregated_active_power/{econnection.id}"] = [1000, 1000, 1000]
+            params[f"EConnection/aggregated_reactive_power/{econnection.id}"] = [0, 0, 0]
+
+        # Execute
+        ret_val = service.load_flow_current_step(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
+                                                 energy_system)
+
+        # Assert
+        data_points_expected_values = {
+            "transformer1_limit" : 250.0,
+            "cable1" : 39.150000000000006,
+            "cable1_limit" : 239.0,
+            "connectionhome2.1" : 230.05,
+        }
+        written_datapoints = service.influx_connector.data_points
+        for data_point in written_datapoints:
+            if data_point.output_name in data_points_expected_values:
+                self.assertAlmostEqual(data_point.value, data_points_expected_values[data_point.output_name], delta=1e-1)
+
+
 
 if __name__ == '__main__':
     unittest.main()

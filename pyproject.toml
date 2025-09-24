@@ -9,9 +9,9 @@ authors = [
   { name="Gijs Verhoeven", email="g.verhoeven.1@tue.nl" },
   { name="Leo van Schooten", email="l.g.t.v.schooten@tue.nl" },
 ]
-description = "A small example package"
+description = "Loadflow service for the DOTS platform"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

@@ -1,6 +1,6 @@
 # Calculation service for esdl_type EnergySystem:
 
-This calculation service performs a load flow calculation based upon the active and reactive power dispatch for all of the household connections.
+This calculation service performs a load flow calculation based upon the active and reactive power dispatch for all of the household connections. The service uses OpenDSS as power flow calculation engine
 
 ## Calculations
 

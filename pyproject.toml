@@ -6,8 +6,9 @@ build-backend = "hatchling.build"
 name = "lvnetworkservice"
 version = "0.0.1"
 authors = [
-  { name="Gijs Verhoeven", email="g.verhoeven.1@tue.nl" },
-  { name="Leo van Schooten", email="l.g.t.v.schooten@tue.nl" },
+    { name="Gijs Verhoeven", email="g.verhoeven.1@tue.nl" },
+    { name="Leo van Schooten", email="l.g.t.v.schooten@tue.nl" },
+    { name="Joeri van der Leden", email="author@example.com" },
 ]
 description = "Loadflow service for the DOTS platform"
 readme = "README.md"

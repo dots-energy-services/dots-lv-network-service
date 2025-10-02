@@ -1,9 +1,11 @@
+import math
 from pathlib import Path
 import re
 import dss
 from dss import IDSS
 import numpy as np
 from power_grid_model.utils import json_serialize_to_file
+import pandas as pd
 
 from power_grid_model.validation import assert_valid_input_data
 from power_grid_model import (
@@ -44,7 +46,8 @@ def get_bus_from_bus(busses_str : str, filter_bus_out : str) -> str:
     return all_busses[0]
 
 dss_engine = dss.DSS
-dss_engine.Text.Command = "compile mv-energy-system.dss"
+
+dss_engine.Text.Command = "compile pgm_test/mv-energy-system.dss"
 dss_engine.ActiveCircuit.Solution.Solve()
 
 property_mapping = {
@@ -60,13 +63,14 @@ id = 0
 node_ids = []
 node_rated_u = []
 dss_name_to_id = {}
-for name in dss_engine.ActiveCircuit.AllNodeNames:
+for i, name in enumerate(dss_engine.ActiveCircuit.AllBusNames):
+    changed_elem = dss_engine.ActiveCircuit.SetActiveBus(name)
+    voltage_kv = dss_engine.ActiveCircuit.Buses.kVBase * math.sqrt(3)
     active_ckt_element = dss_engine.ActiveCircuit.ActiveCktElement
-    u_rated_v = float(active_ckt_element.Properties[property_mapping["kV"]].Val) * 1000
-    name_without_phases = name.split('.')[0]
-    if name_without_phases not in dss_name_to_id:
+    u_rated_v = float(voltage_kv) * 1000
+    if name not in dss_name_to_id:
         id += 1
-        dss_name_to_id[name_without_phases] = id
+        dss_name_to_id[name] = id
         node_ids.append(id)
         node_rated_u.append(u_rated_v)
 
@@ -79,7 +83,7 @@ property_mapping = {
     "Length" : 0,
     "Bus1" : 0,
     "Bus2" : 0,
-    "CMatrix" : 0
+    "CMatrix" : 0,
 }
 
 line_ids = []
@@ -109,6 +113,7 @@ c0_values = []
 c1_values = []
 line_from_node = []
 line_to_node = []
+i_n = []
 
 dss_engine.ActiveCircuit.SetActiveElement(f"Line.{dss_engine.ActiveCircuit.Lines.AllNames[0]}")
 for i, prop_name in enumerate(dss_engine.ActiveCircuit.ActiveCktElement.AllPropertyNames):
@@ -148,41 +153,42 @@ for name in dss_engine.ActiveCircuit.Lines.AllNames:
         x_nn.append(np.nan)
     id += 1 
     line_ids.append(id)
+    i_n.append(normaps)
 
 high_voltage_trafo_props = {
     "u1" : 150 * 1.0e3,
     "u2" : 11 * 1.0e3,
     "uk" : 0.175,
     "pk" : 196*1.0e3,
-    "i0" : (34.3 *1.0e3)/(40*10e6),
-    "p0" : 34.3 *1.0e3,
+    "i0" : 0,
+    "p0" : 0,
     "winding_from" : 0,
     "winding_to" : 2,
-    "clock" : 0,
-    "tap_side" : 1,
+    "clock" : 5,
+    "tap_side" : 0,
     "tap_min" : -13,
     "tap_nom" : 0,
     "tap_max" : 9,
     "tap_size" : 2.5 * 1.0e3,
-    "sn" : 40*10e6
+    "sn" : 4*10e9
 }
 
 mv_lv_trafo_props = {
     "u1" : 10750,
     "u2" : 400,
-    "uk" : 0.175,
-    "pk" : 196*1.0e3,
-    "i0" : (0.515*1.0e3)/(400*10e3),
-    "p0" : 0.515*1.0e3,
+    "uk" : 0.025,
+    "pk" : 1.0e3,
+    "i0" : 0,
+    "p0" : 0,
     "winding_from" : 2,
     "winding_to" : 1,
-    "clock" : 0,
-    "tap_side" : 1,
+    "clock" : 5,
+    "tap_side" : 0,
     "tap_min" : 5,
     "tap_nom" : 3,
     "tap_max" : 1,
     "tap_size" : 0.25 * 1.0e3,
-    "sn" : 400*10e3
+    "sn" : 4*1e6
 }
 
 trafo_ids = []
@@ -203,11 +209,14 @@ trafo_tap_nom = []
 trafo_from_node = []
 trafo_to_node = []
 trafo_sn = []
+shunt_id = []
+shunt_node = []
+shunt_g1 = []
+shunt_b1 = []
+shunt_g0 = []
+shunt_b0 = []
+shunt_status = []
 result = dss_engine.ActiveCircuit.Transformers.First
-
-bal = dss_engine.ActiveCircuit.SetActiveElement("Transformer.transformer5")
-tal = dss_engine.ActiveCircuit.ActiveCktElement
-kla = 0
 
 transformer_property_mapping = {
     "XfmrCode" : 0,
@@ -227,6 +236,15 @@ for name in dss_engine.ActiveCircuit.Transformers.AllNames:
         property_values[key] = active_ckt_element.Properties[index].Val
     trafo_properties = mv_lv_trafo_props
     if property_values["XfmrCode"] == 'highvoltagetesttrafotype':
+        id += 1
+        shunt_id.append(id)
+        shunt_g1.append(0)
+        shunt_b1.append(0)
+        shunt_g0.append(0)
+        shunt_b0.append(1/7)
+        to_node_bus = property_values["Bus"].split('.')[0]
+        shunt_node.append(dss_name_to_id[from_node_bus])
+        shunt_status.append(1)
         trafo_properties = high_voltage_trafo_props
 
     id += 1
@@ -237,7 +255,7 @@ for name in dss_engine.ActiveCircuit.Transformers.AllNames:
     trafo_i0.append(trafo_properties["i0"])
     trafo_p0.append(trafo_properties["p0"])
     trafo_winding_from.append(trafo_properties["winding_from"])
-    trafo_winding_to.append(trafo_properties["winding_from"])
+    trafo_winding_to.append(trafo_properties["winding_to"])
     trafo_clock.append(trafo_properties["clock"])
     trafo_tap_side.append(trafo_properties["tap_side"])
     trafo_tap_min.append(trafo_properties["tap_min"])
@@ -297,7 +315,7 @@ source = initialize_array(DatasetType.input, ComponentType.source, 1)
 source["id"] = [id]
 source["node"] = [dss_name_to_id["jointhighvoltagetrafo_import"]]
 source["status"] = [1]
-source["u_ref"] = [150*1.0e3]
+source["u_ref"] = [1.0]
 
 # transformer
 transformer = initialize_array(DatasetType.input, ComponentType.transformer, len(trafo_ids))
@@ -350,13 +368,24 @@ asym_line["x_nc"] = x_nc
 asym_line["x_nn"] = x_nn
 asym_line["c0"] = c0_values
 asym_line["c1"] = c1_values
+asym_line["i_n"] = i_n
+
+shunt = initialize_array(DatasetType.input, ComponentType.shunt, len(shunt_id))
+shunt["id"] = shunt_id
+shunt["node"] = shunt_node
+shunt["g1"] = shunt_g1
+shunt["b1"] = shunt_b1
+shunt["g0"] = shunt_g0
+shunt["b0"] = shunt_b0
+shunt["status"] = shunt_status
 
 input_data = {
     ComponentType.node: node,
     ComponentType.asym_line: asym_line,
     ComponentType.asym_load: asym_load,
     ComponentType.source: source,
-    ComponentType.transformer: transformer
+    ComponentType.transformer: transformer,
+    ComponentType.shunt: shunt
 }
 
 
@@ -364,10 +393,13 @@ assert_valid_input_data(input_data=input_data, calculation_type=CalculationType.
 
 # construction
 model = PowerGridModel(input_data)
-json_serialize_to_file(Path("out.json"), input_data)
+json_serialize_to_file(Path("input_data.json"), input_data)
 
 # one-time power flow calculation
 output_data = model.calculate_power_flow(
     symmetric=False, error_tolerance=1e-8, max_iterations=20, calculation_method=CalculationMethod.newton_raphson
 )
 
+print(pd.DataFrame(output_data[ComponentType.asym_line]["loading"]))
+
+json_serialize_to_file(Path("out_result.json"), output_data)

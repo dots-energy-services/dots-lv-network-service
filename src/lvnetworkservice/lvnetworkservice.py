@@ -356,27 +356,27 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         LOGGER.info("calculation 'load_flow_current_step' started")     
 
         LOGGER.debug('OpenDSS add loads to network')
-
-        self.dss_engine.ActiveCircuit.SetActiveElement(f"{self.ems_list[list(self.ems_list.keys())[0]][0]}")
-        property_mapping : dict [str, int] = {
-            "kW" : 0,
-            "kvar" : 0
-        }
-        for i, prop_name in enumerate(self.dss_engine.ActiveCircuit.ActiveCktElement.AllPropertyNames):
-            if prop_name in property_mapping:
-                property_mapping[prop_name] = i
-        for id in self.ems_list:
-            num_phases = len(param_dict[f'EConnection/aggregated_active_power/{id}'])
-            for i, name in enumerate(self.ems_list[id]):
-                if i < num_phases:
-                    self.dss_engine.ActiveCircuit.SetActiveElement(name)
-                    active_ckt_element = self.dss_engine.ActiveCircuit.ActiveCktElement
-                    active_load = param_dict[f'EConnection/aggregated_active_power/{id}'][i] * 1e-3
-                    reactive_load = param_dict[f'EConnection/aggregated_reactive_power/{id}'][i] * 1e-3
-                    if active_ckt_element.AllPropertyNames[property_mapping["kW"]] != "kW" or active_ckt_element.AllPropertyNames[property_mapping["kvar"]] != "kvar":
-                        raise ValueError("Property mapping for kW or kvar is incorrect")
-                    active_ckt_element.Properties[property_mapping["kW"]].Val = active_load
-                    active_ckt_element.Properties[property_mapping["kvar"]].Val = reactive_load
+        if len(list(self.ems_list.keys())) > 0:
+            self.dss_engine.ActiveCircuit.SetActiveElement(f"{self.ems_list[list(self.ems_list.keys())[0]][0]}")
+            property_mapping : dict [str, int] = {
+                "kW" : 0,
+                "kvar" : 0
+            }
+            for i, prop_name in enumerate(self.dss_engine.ActiveCircuit.ActiveCktElement.AllPropertyNames):
+                if prop_name in property_mapping:
+                    property_mapping[prop_name] = i
+            for id in self.ems_list:
+                num_phases = len(param_dict[f'EConnection/aggregated_active_power/{id}'])
+                for i, name in enumerate(self.ems_list[id]):
+                    if i < num_phases:
+                        self.dss_engine.ActiveCircuit.SetActiveElement(name)
+                        active_ckt_element = self.dss_engine.ActiveCircuit.ActiveCktElement
+                        active_load = param_dict[f'EConnection/aggregated_active_power/{id}'][i] * 1e-3
+                        reactive_load = param_dict[f'EConnection/aggregated_reactive_power/{id}'][i] * 1e-3
+                        if active_ckt_element.AllPropertyNames[property_mapping["kW"]] != "kW" or active_ckt_element.AllPropertyNames[property_mapping["kvar"]] != "kvar":
+                            raise ValueError("Property mapping for kW or kvar is incorrect")
+                        active_ckt_element.Properties[property_mapping["kW"]].Val = active_load
+                        active_ckt_element.Properties[property_mapping["kvar"]].Val = reactive_load
 
 
     def do_load_flow(self):

@@ -10,9 +10,26 @@ from dots_infrastructure.HelicsFederateHelpers import HelicsSimulationExecutor
 from dots_infrastructure.Logger import LOGGER
 from esdl import EnergySystem
 import networkx as nx
-import dss
+import dss          #may be removed eventually
 import math
 from dataclasses import dataclass
+
+import numpy as np
+import pandas as pd
+
+from power_grid_model import (
+    CalculationMethod,
+    CalculationType,
+    ComponentAttributeFilterOptions,
+    ComponentType,
+    DatasetType,
+    LoadGenType,
+    PowerGridModel,
+    attribute_dtype,
+    initialize_array,
+)
+import hashlib
+import uuid
 
 @dataclass
 class DssCircuitProperties:
@@ -20,6 +37,11 @@ class DssCircuitProperties:
     primary_voltage_bases : List[float]
     secondary_trafo_busses : List[str]
     secondary_voltage_bases: List[float]
+
+@dataclass
+class OGMNetworkProperties:
+    pass
+
 
 @dataclass
 class PowerFlowResult:
@@ -73,12 +95,16 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         return [a for a in assets if isinstance(a, type)]
 
     def init_calculation_service(self, energy_system : esdl.EnergySystem):
-        assets = energy_system.instance[0].area.asset
-        self.network_name = energy_system.name.replace(" ", '_')
-        lines_to_write = []
-        dss_circuit_properties = self.build_base_dss_file(assets, lines_to_write)
-        self.add_mv_network_to_main_dss(assets, lines_to_write)
-        self.add_lv_networks_to_main_dss(assets, dss_circuit_properties)
+
+        assets = energy_system.instance[0].area.asset   
+        self.network_name = energy_system.name.replace(" ", '_') #stay the same for OGM?
+        lines_to_write = [] 
+       
+
+        dss_circuit_properties = self.build_base_dss_file(assets, lines_to_write) #Makes Basic File for dss 
+        self.add_mv_network_to_main_dss(assets, lines_to_write) #Adds MV network to dss file (prob start here)
+        #self.add_lv_networks_to_main_dss(assets, dss_circuit_properties) #Adds LV network to dss file 
+        self.add_lv_networks_to_main_OGM(assets) #Adds LV network to OGM
         LOGGER.debug('OpenDSS compile network')
         self.dss_engine.Text.Command = f"compile {self.dss_file_name}"   
         self.all_node_names = self.dss_engine.ActiveCircuit.AllNodeNames
@@ -94,11 +120,23 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                         cable.length) + ' Units=m \n'
         return dss_cable
 
+    # def add_mv_network_to_main_ogm(self, assets: List[esdl.Asset]) -> OGMNetworkProperties:
+    #     #pass #this only says this function exists but nothing in it
+    #     joints = [a for a in esdl.EnergySystem.eAllContents() if isinstance(a, esdl.Joint)]
+    #     node = initialize_array(DatasetType.input, ComponentType.node, len(joints)) #Instead of 3, there should be the number of nodes
+    #     node["id"] = np.array(joints.id)
+        
+    #     #mv_cables = [a for a in assets if isinstance(a, esdl.ElectricityCable) and "vmv" in a.assetType.lower()]
+    #     line = initialize_array(DatasetType.input, ComponentType.line, len(mv_cables))
+    #     line["id"] = np.array(mv_cables.id)
+    #     #line["from_node"] = np.array(mv_cables.) #from out_port Continue here
+    #     LOGGER.info("Number of Nodes: len(joints)")
+
     def add_mv_network_to_main_dss(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
 
         self.add_mv_lines(assets, lines_to_write)
 
-        with open(self.dss_file_name, "w") as f:
+        with open(self.dss_file_name, "w") as f:   #Is not necessary for OGM I think
             f.writelines(lines_to_write)
 
         lines_to_write.clear()
@@ -205,6 +243,90 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
             assert len(graph.edges) == len(self.dss_engine.ActiveCircuit.Lines.AllNames)
         return graph
+
+
+    # def uuid_to_int64(self, uuid_obj) -> int:
+    #     if uuid_obj is None:
+    #        return 0  # or some sentinel value
+    #     # If iterable but not string, take the first element
+    #     if hasattr(uuid_obj, "__iter__") and not isinstance(uuid_obj, str):
+    #         uuid_str = str(list(uuid_obj)[0])
+    #     else:
+    #         uuid_str = str(uuid_obj)
+    #     uuid_str = uuid_str.strip()
+    #     u = uuid.UUID(uuid_str)
+    #     h = hashlib.sha256(u.bytes).digest()
+    #     return int.from_bytes(h[:8], 'big')
+
+
+    def normalize_id(self, ref):
+        if ref is None:
+            return None
+        if hasattr(ref, "id"):
+            return str(ref.id)
+        if hasattr(ref, "__iter__") and not isinstance(ref, str):
+            for item in ref:
+                if hasattr(item, "id"):
+                    return str(item.id)
+        return str(ref)
+
+    def find_joint_id_by_port(self, port_id: str) -> int | None:
+        for j in self.joints:
+            for p in j.port:
+                if p.id == port_id:
+                    return self.joint_id_map[j.id]
+        return None
+
+    def add_lv_networks_to_main_OGM(self, assets: List[esdl.Asset]) -> OGMNetworkProperties:
+        
+        self.joints = [a for a in assets if isinstance(a, esdl.Joint)]
+        self.joint_id_map = {j.id: i + 1 for i, j in enumerate(self.joints)}
+        node = initialize_array(DatasetType.input, ComponentType.node, len(self.joints), empty=True)
+        node["id"] = np.array([self.joint_id_map[j.id] for j in self.joints])
+
+        lv_cables = [a for a in assets if isinstance(a, esdl.ElectricityCable)] #esdl.ElectricityCable does not see the difference between LV and MV cable. Look into later
+        cable_id_map = {c.id: i + 1 for i, c in enumerate(lv_cables)}   # Also takes the HomeCables into account. -> 11 cables in test
+        line = initialize_array(DatasetType.input, ComponentType.line, len(lv_cables))
+        line["id"] = np.array([cable_id_map[c.id] for c in lv_cables])
+
+        from_nodes = []
+        to_nodes = []
+
+        for c in lv_cables:
+            from_port = next((p for p in c.port if isinstance(p, esdl.InPort)), None)
+            to_port = next((p for p in c.port if isinstance(p, esdl.OutPort)), None)
+
+            from_id = self.normalize_id(getattr(from_port, "connectedTo", None))
+            to_id = self.normalize_id(getattr(to_port, "connectedTo", None))
+            
+            from_joint_id = self.find_joint_id_by_port(from_id) if from_port else None
+            to_joint_id = self.find_joint_id_by_port(to_id) if to_port else None
+    
+            from_nodes.append(from_joint_id)
+            to_nodes.append(to_joint_id)
+
+        print("from_nodes:", from_nodes)
+        print("to_nodes:", to_nodes)
+        line["from_node"] = from_nodes
+        #line["to_node"] = to_nodes #For none values, create an extra node with Econnect, Eventually also put loads on it.
+        
+        #node = initialize_array(DatasetType.input, ComponentType.node, len(joints), empty = True) #Check if len(joints) is 10 for test.esdl
+        #hex_to_int = {j.id: int(j.id.replace('-', ''), 16) for j in joints}
+        #node_ids = np.array([hex_to_int[j.id] for j in joints], dtype=attribute_dtype(DatasetType.input, ComponentType.node, "id"))           
+        # node["id"] = np.array([self.uuid_to_int64(str(j.id)) for i,j enumerate(joints)]) #enumerate
+        
+        
+ 
+        
+        
+        # line["id"] = np.array([self.uuid_to_int64(str(c.id)) for c in lv_cables])
+        # line["from_node"] = np.array([next((self.uuid_to_int64(p.connectedTo) for p in c.port if isinstance(p, esdl.InPort)), None) for c in lv_cables], dtype=attribute_dtype(DatasetType.input, ComponentType.line, "from_node"))
+        # line["to_node"] = np.array([next((self.uuid_to_int64(p.connectedTo) for p in c.port if isinstance(p, esdl.OutPort)), None) for c in lv_cables])
+       
+        #line["from_node"] = np.array(mv_cables.) #from out_port Continue here
+        LOGGER.info("Number of Nodes: len(joints)")
+        
+
 
     def add_lv_networks_to_main_dss(self, assets : List[esdl.Asset], dss_circuit_properties : DssCircuitProperties):
         lines = []

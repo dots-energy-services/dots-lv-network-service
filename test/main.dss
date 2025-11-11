@@ -1,0 +1,17 @@
+Clear 
+
+Set DefaultBaseFrequency=50 
+
+! Swing or Source Bar 
+New circuit.TestESDL_1 phases=3 pu=1.0 basekv=10.5 bus1=Node10 
+
+! Trafo XFMRCodes 
+Redirect XFMRCode.dss 
+
+! Trafo 
+New Transformer.Transformer1 Xfmrcode=10000_400_V_250_kVA_Smit Buses=[Node10  Node1.1.2.3] kVs=[10.0 0.38] 
+
+! LineCodes 
+Redirect LineCode.dss 
+
+! Lines 

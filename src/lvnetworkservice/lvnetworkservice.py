@@ -275,22 +275,33 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             for p in j.port:
                 if p.id == port_id:
                     return self.joint_id_map[j.id]
-        return None
+        return 
+    
+    def econ_port_to_econ_id(self, port_id: str) -> int | None:
+        for j in self.econnections:
+            for p in j.port:
+               if p.id == port_id:
+                    return port_id
+        return None #source = Import
 
     def add_lv_networks_to_main_OGM(self, assets: List[esdl.Asset]) -> OGMNetworkProperties:
+        self.Buildings = [a for a in assets if isinstance(a, esdl.Building)]
+        self.econnections = []
+        for building in self.Buildings:
+            for asset in building.asset:
+                if isinstance(asset, esdl.EConnection):
+                    self.econnections.append(asset)
         
         self.joints = [a for a in assets if isinstance(a, esdl.Joint)]
         self.joint_id_map = {j.id: i + 1 for i, j in enumerate(self.joints)}
-        node = initialize_array(DatasetType.input, ComponentType.node, len(self.joints), empty=True)
-        node["id"] = np.array([self.joint_id_map[j.id] for j in self.joints])
 
         lv_cables = [a for a in assets if isinstance(a, esdl.ElectricityCable)] #esdl.ElectricityCable does not see the difference between LV and MV cable. Look into later
         cable_id_map = {c.id: i + 1 for i, c in enumerate(lv_cables)}   # Also takes the HomeCables into account. -> 11 cables in test
-        line = initialize_array(DatasetType.input, ComponentType.line, len(lv_cables))
-        line["id"] = np.array([cable_id_map[c.id] for c in lv_cables])
 
         from_nodes = []
         to_nodes = []
+
+
 
         for c in lv_cables:
             from_port = next((p for p in c.port if isinstance(p, esdl.InPort)), None)
@@ -301,30 +312,44 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             
             from_joint_id = self.find_joint_id_by_port(from_id) if from_port else None
             to_joint_id = self.find_joint_id_by_port(to_id) if to_port else None
-    
+
+            if to_joint_id is None:
+                #None_joint += 1
+                #to_joint_id = len(self.joints) + None_joint
+                econ_id = self.econ_port_to_econ_id(to_id)
+                to_joint_id = len(self.joint_id_map) + 1
+                self.joint_id_map[econ_id] = to_joint_id
+                #Do something if econ_id = None
+
             from_nodes.append(from_joint_id)
             to_nodes.append(to_joint_id)
+            
 
         print("from_nodes:", from_nodes)
         print("to_nodes:", to_nodes)
+
+
+        #Initialize line array
+        line = initialize_array(DatasetType.input, ComponentType.line, len(lv_cables))
+        line["id"] = np.array([cable_id_map[c.id] for c in lv_cables])
         line["from_node"] = from_nodes
-        #line["to_node"] = to_nodes #For none values, create an extra node with Econnect, Eventually also put loads on it.
+        line["to_node"] = to_nodes
+        line["from_status"] = np.ones(len(lv_cables))
+        line["to_status"] = np.ones(len(lv_cables))
+        line["r1"] = np.random.randint(0.1,1, len(lv_cables))
+        line["x1"] = np.random.randint(0.1,1, len(lv_cables))
+        line["c1"] = np.full(len(lv_cables), 10e-6)
+        line["tan1"] = np.zeros(len(lv_cables))
+        line["i_n"] = np.full(len(lv_cables), 100)
+
+        node_ids = np.array(list(self.joint_id_map.values()))
+        node = initialize_array(DatasetType.input, ComponentType.node, len(node_ids), empty=True)
+        node["id"] = node_ids
+        print(node["id"])
         
-        #node = initialize_array(DatasetType.input, ComponentType.node, len(joints), empty = True) #Check if len(joints) is 10 for test.esdl
-        #hex_to_int = {j.id: int(j.id.replace('-', ''), 16) for j in joints}
-        #node_ids = np.array([hex_to_int[j.id] for j in joints], dtype=attribute_dtype(DatasetType.input, ComponentType.node, "id"))           
-        # node["id"] = np.array([self.uuid_to_int64(str(j.id)) for i,j enumerate(joints)]) #enumerate
         
         
- 
-        
-        
-        # line["id"] = np.array([self.uuid_to_int64(str(c.id)) for c in lv_cables])
-        # line["from_node"] = np.array([next((self.uuid_to_int64(p.connectedTo) for p in c.port if isinstance(p, esdl.InPort)), None) for c in lv_cables], dtype=attribute_dtype(DatasetType.input, ComponentType.line, "from_node"))
-        # line["to_node"] = np.array([next((self.uuid_to_int64(p.connectedTo) for p in c.port if isinstance(p, esdl.OutPort)), None) for c in lv_cables])
-       
-        #line["from_node"] = np.array(mv_cables.) #from out_port Continue here
-        LOGGER.info("Number of Nodes: len(joints)")
+     
         
 
 

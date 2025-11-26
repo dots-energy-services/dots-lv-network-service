@@ -1729,7 +1729,7 @@
           <port xsi:type="esdl:InPort" id="7c33ddb5-7b89-4695-a180-e9c929de52f6" name="In" connectedTo="10d0680e-e265-493e-b866-a1007fa4c4ae"/>
           <port xsi:type="esdl:OutPort" id="0669d324-84b1-4cb5-bade-183786cbb009" name="Out" connectedTo="480116e1-721d-41bc-b40a-c2002a455e42"/>
           <geometry xsi:type="esdl:Point" CRS="Simple" lon="236.0" lat="160.0"/>
-        </asset>
+        </asset>bb63046b-c050-4778-909a-70896b10f116
         <asset xsi:type="esdl:ElectricityDemand" name="DemandHome3" originalIdInSource="3_1" id="b64adaf7-f407-45ae-9b13-9c8945d5bd31" powerFactor="0.95">
           <port xsi:type="esdl:InPort" id="5db69f8c-1b70-4b36-b316-cda5ad92e0c3" name="In_Ph1" connectedTo="bc97ea80-8828-47d4-abf4-fe7687bcdc5d"/>
           <port xsi:type="esdl:InPort" id="6683dc2a-6eed-4a33-a7ac-e13a8126b34c" name="In_Ph2" connectedTo="849116d9-a73f-4d08-9f7a-3fde19762b54"/>

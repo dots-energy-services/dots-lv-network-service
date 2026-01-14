@@ -13,6 +13,7 @@ import networkx as nx
 import dss          #may be removed eventually
 import math
 from dataclasses import dataclass
+from power_grid_model.utils import json_serialize_to_file
 
 import numpy as np
 import pandas as pd
@@ -28,8 +29,8 @@ from power_grid_model import (
     attribute_dtype,
     initialize_array,
 )
-import hashlib
-import uuid
+from power_grid_model.validation import assert_valid_input_data
+
 
 @dataclass
 class DssCircuitProperties:
@@ -45,11 +46,16 @@ class OGMNetworkProperties:
 
 @dataclass
 class PowerFlowResult:
-    bus_voltage_mag : List[float]
-    total_line_current_mag : List[float]
-    transformer_power : List[float]
-    total_line_current_lim : List[float]
-    transformer_power_lim : List[float]
+     bus_voltage_mag : List[float]
+     bus_voltage_ang : List[float]
+    # total_line_current_mag_from : List[float]
+    # total_line_current_mag_to : List[float]
+    # line_current_ang_from : List[float]
+    # line_current_ang_to : List[float]
+    # transformer_power_from : List[float]
+    # transformer_power_to : List[float]
+    # total_line_current_lim : List[float]
+    # transformer_power_lim : List[float]
 
 class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
@@ -81,6 +87,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             calculation_function=self.load_flow_current_step
         )
         self.dss_engine = dss.DSS
+        self.output_frame = pd.DataFrame()
         self.lines_section_start_marker = '! Lines \n'
         self.transformer_section_start_marker = '! Trafo \n'
         self.load_definition_section_start_marker = '! Load Definitions \n'
@@ -98,27 +105,16 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         assets = energy_system.instance[0].area.asset   
         self.network_name = energy_system.name.replace(" ", '_') #stay the same for OGM?
-        lines_to_write = [] 
+        
        
 
-        dss_circuit_properties = self.build_base_dss_file(assets, lines_to_write) #Makes Basic File for dss 
-        self.add_mv_network_to_main_dss(assets, lines_to_write) #Adds MV network to dss file (prob start here)
-        #self.add_lv_networks_to_main_dss(assets, dss_circuit_properties) #Adds LV network to dss file 
+         
+        #self.add_mv_network_to_main_dss(assets, lines_to_write) #Adds MV network to dss file (prob start here)
+        
         self.add_lv_networks_to_main_OGM(assets) #Adds LV network to OGM
-        LOGGER.debug('OpenDSS compile network')
-        self.dss_engine.Text.Command = f"compile {self.dss_file_name}"   
-        self.all_node_names = self.dss_engine.ActiveCircuit.AllNodeNames
-        self.all_line_names = self.dss_engine.ActiveCircuit.Lines.AllNames
-        self.all_transformer_names = self.dss_engine.ActiveCircuit.Transformers.AllNames
+        
 
-    def generate_dss_electricity_cable(self, cable : esdl.ElectricityCable, bus_from : esdl.Joint, bus_to : esdl.Joint, include_ground = True):
-        phases_specifications = '.1.2.3.4' if include_ground else '.1.2.3'
-        phases = 4 if include_ground else 3
-        dss_cable = 'New Line.' + cable.name + f' Phases={phases} Bus1=' + bus_from.name.split('Bus')[
-                        0] + phases_specifications + ' Bus2=' + bus_to.name.split('Bus')[
-                                     0] + phases_specifications + ' LineCode=' + cable.assetType + ' Length=' + str(
-                        cable.length) + ' Units=m \n'
-        return dss_cable
+
 
     # def add_mv_network_to_main_ogm(self, assets: List[esdl.Asset]) -> OGMNetworkProperties:
     #     #pass #this only says this function exists but nothing in it
@@ -245,19 +241,6 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         return graph
 
 
-    # def uuid_to_int64(self, uuid_obj) -> int:
-    #     if uuid_obj is None:
-    #        return 0  # or some sentinel value
-    #     # If iterable but not string, take the first element
-    #     if hasattr(uuid_obj, "__iter__") and not isinstance(uuid_obj, str):
-    #         uuid_str = str(list(uuid_obj)[0])
-    #     else:
-    #         uuid_str = str(uuid_obj)
-    #     uuid_str = uuid_str.strip()
-    #     u = uuid.UUID(uuid_str)
-    #     h = hashlib.sha256(u.bytes).digest()
-    #     return int.from_bytes(h[:8], 'big')
-
 
     def normalize_id(self, ref):
         if ref is None:
@@ -282,9 +265,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             for p in j.port:
                if p.id == port_id:
                     return port_id
-        return None #source = Import
+        return None 
+    
+  
 
     def add_lv_networks_to_main_OGM(self, assets: List[esdl.Asset]) -> OGMNetworkProperties:
+        self.source = [a for a in assets if isinstance(a, esdl.Import)]
+        self.transformer = [a for a in assets if isinstance(a, esdl.Transformer)]
         self.Buildings = [a for a in assets if isinstance(a, esdl.Building)]
         self.econnections = []
         for building in self.Buildings:
@@ -300,10 +287,10 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         from_nodes = []
         to_nodes = []
-
-
-
+        Econ_node = []
+        cable_lengths_map = []
         for c in lv_cables:
+            cable_lengths_map.append(c.length)
             from_port = next((p for p in c.port if isinstance(p, esdl.InPort)), None)
             to_port = next((p for p in c.port if isinstance(p, esdl.OutPort)), None)
 
@@ -314,44 +301,229 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             to_joint_id = self.find_joint_id_by_port(to_id) if to_port else None
 
             if to_joint_id is None:
-                #None_joint += 1
-                #to_joint_id = len(self.joints) + None_joint
                 econ_id = self.econ_port_to_econ_id(to_id)
                 to_joint_id = len(self.joint_id_map) + 1
+                Econ_node.append(to_joint_id)
                 self.joint_id_map[econ_id] = to_joint_id
                 #Do something if econ_id = None
 
             from_nodes.append(from_joint_id)
             to_nodes.append(to_joint_id)
-            
+
+        self.asym_line_from_nodes = np.array(from_nodes) #Used in processing results
+
+        source_to_node = []
+        for source in self.source:
+            out_port = next((p for p in source.port if isinstance(p, esdl.OutPort)), None)
+            if out_port is None:
+                continue  # skip if no OutPort
+    
+            connected_uuid = self.normalize_id(getattr(out_port, "connectedTo", None))
+            for joint in self.joints:
+                inport = next((p for p in joint.port if isinstance(p, esdl.InPort)), None)
+                if inport.id == connected_uuid:
+                    source_to_node_id = self.joint_id_map[joint.id]
+                    source_to_node.append(source_to_node_id)
+                    
 
         print("from_nodes:", from_nodes)
         print("to_nodes:", to_nodes)
+        node_to_trafo = []
+        trafo_to_node = []
+        primary_voltage = []
+        secundary_voltage = []
+        node_voltage_map = {}
+        for trafo in self.transformer:
+            primary_voltage.append(trafo.voltagePrimary)
+            secundary_voltage.append(trafo.voltageSecundary)    
+            from_joint_to_trafo = next((p for p in trafo.port if isinstance(p, esdl.InPort)), None)
+            from_trafo_to_joint = next((p for p in trafo.port if isinstance(p, esdl.OutPort)), None)
+            connected_uuid_in = self.normalize_id(getattr(from_joint_to_trafo, "connectedTo", None))
+            connected_uuid_out = self.normalize_id(getattr(from_trafo_to_joint, "connectedTo", None))
+            for joint in self.joints:
+                inport = next((p for p in joint.port if isinstance(p, esdl.InPort)), None)
+                outport = next((p for p in joint.port if isinstance(p, esdl.OutPort)), None)
+                if inport and inport.id == connected_uuid_out:
+                    trafo_to_node_id = self.joint_id_map[joint.id]
+                    trafo_to_node.append(trafo_to_node_id)
+                    node_voltage_map[trafo_to_node_id] = trafo.voltageSecundary
+                    
+                
 
-
-        #Initialize line array
-        line = initialize_array(DatasetType.input, ComponentType.line, len(lv_cables))
-        line["id"] = np.array([cable_id_map[c.id] for c in lv_cables])
-        line["from_node"] = from_nodes
-        line["to_node"] = to_nodes
-        line["from_status"] = np.ones(len(lv_cables))
-        line["to_status"] = np.ones(len(lv_cables))
-        line["r1"] = np.random.randint(0.1,1, len(lv_cables))
-        line["x1"] = np.random.randint(0.1,1, len(lv_cables))
-        line["c1"] = np.full(len(lv_cables), 10e-6)
-        line["tan1"] = np.zeros(len(lv_cables))
-        line["i_n"] = np.full(len(lv_cables), 100)
+                if outport and outport.id == connected_uuid_in:
+                    node_to_trafo_id = self.joint_id_map[joint.id]
+                    node_to_trafo.append(node_to_trafo_id)
+                    node_voltage_map[node_to_trafo_id] = trafo.voltagePrimary
+                 
+        #Initialize node array
+        DEFAULT_LV_VOLTAGE = 0.4 #als backup voor nodes zonder trafo
+        for node_id in self.joint_id_map.values():
+            if node_id not in node_voltage_map:
+                node_voltage_map[node_id] = DEFAULT_LV_VOLTAGE
 
         node_ids = np.array(list(self.joint_id_map.values()))
-        node = initialize_array(DatasetType.input, ComponentType.node, len(node_ids), empty=True)
-        node["id"] = node_ids
-        print(node["id"])
-        
-        
-        
-     
-        
+        self.node = initialize_array(DatasetType.input, ComponentType.node, len(node_ids), empty=True) #Load toevoegen voor created nodes 
+        self.node["id"] = node_ids
+        self.node["u_rated"] = np.array([node_voltage_map[nid] for nid in node_ids])*1000 #in V
 
+        ID_counter = len(node_ids) + 1
+
+        #Initialize line array
+        cable_length_kms = np.array(cable_lengths_map) / 1000  # Convert length to kilometers
+        n = len(lv_cables)
+        self.asym_line = initialize_array(DatasetType.input,ComponentType.asym_line, n)
+
+        self.asym_line["id"] = np.array([i + ID_counter for i in range(n)])
+        self.asym_line["from_node"] = from_nodes
+        self.asym_line["to_node"] = to_nodes
+        self.asym_line["from_status"] = np.ones(n)
+        self.asym_line["to_status"] = np.ones(n)
+
+        # Resistance matrix (Ohm )
+
+        self.asym_line["r_aa"] = np.full(n, 0.17347001) * cable_length_kms
+        self.asym_line["r_ba"] = np.full(n, 0.04947) * cable_length_kms
+        self.asym_line["r_ca"] = np.full(n, 0.04947) * cable_length_kms
+
+        self.asym_line["r_bb"] = np.full(n, 0.17347001) * cable_length_kms
+        self.asym_line["r_cb"] = np.full(n, 0.04947) * cable_length_kms
+
+        self.asym_line["r_cc"] = np.full(n, 0.17347001) * cable_length_kms
+        self.asym_line["r_na"] = np.full(n, 0.04947) * cable_length_kms
+        self.asym_line["r_nb"] = np.full(n, 0.04947) * cable_length_kms
+        self.asym_line["r_nc"] = np.full(n, 0.04947) * cable_length_kms
+        self.asym_line["r_nn"] = np.full(n, 0.17347001) * cable_length_kms
+
+
+
+        # Reactance matrix (Ohm )
+
+        self.asym_line["x_aa"] = np.full(n, 0.81673998) * cable_length_kms
+        self.asym_line["x_ba"] = np.full(n, 0.74563998) * cable_length_kms
+        self.asym_line["x_bb"] = np.full(n, 0.81673998) * cable_length_kms
+        self.asym_line["x_ca"] = np.full(n, 0.72983998) * cable_length_kms
+
+        self.asym_line["x_cb"] = np.full(n, 0.74563998) * cable_length_kms
+
+        self.asym_line["x_cc"] = np.full(n, 0.81673998) * cable_length_kms
+        self.asym_line["x_na"] = np.full(n, 0.74563998) * cable_length_kms
+        self.asym_line["x_nb"] = np.full(n, 0.72983998) * cable_length_kms
+        self.asym_line["x_nc"] = np.full(n, 0.74563998) * cable_length_kms
+        self.asym_line["x_nn"] = np.full(n, 0.81673998) * cable_length_kms
+
+        self.asym_line["i_n"] = np.full(n, 414.0)
+        self.asym_line["c0"] = np.full(len(lv_cables), 0.43200001e-9)
+        self.asym_line["c1"] = np.full(len(lv_cables), 0.7200000e-9)
+
+
+        # Capacitance (F )
+
+        # asym_line["c_aa"] = np.full(n, 0.72000003e-9) * cable_length_kms
+        # asym_line["c_ba"] = np.full(n, 0.72000003e-9) * cable_length_kms
+        # asym_line["c_ca"] = np.full(n, 0.72000003e-9) * cable_length_kms
+
+        # asym_line["c_bb"] = np.full(n, 0.72000003e-9) * cable_length_kms
+        # asym_line["c_cb"] = np.full(n, 0.72000003e-9) * cable_length_kms
+
+        # asym_line["c_cc"] = np.full(n, 0.72000003e-9) * cable_length_kms
+
+
+        # asym_line["r0"] = np.full(len(lv_cables), 0.4)
+        # asym_line["x0"] = np.full(len(lv_cables), 0.6)
+        #asym_line["tan0"] = np.zeros(len(lv_cables))
+
+        ID_counter += len(self.asym_line["id"])       
+        
+        #Initialize load array
+        self.asym_load = initialize_array(DatasetType.input, ComponentType.asym_load, len(self.econnections))
+        self.asym_load["id"] = np.array([i + ID_counter for i in range(len(self.econnections))])
+        self.asym_load["node"] = Econ_node
+        self.asym_load["status"] = np.ones(len(self.econnections))
+        self.asym_load["type"] = [LoadGenType.const_power]
+        self.asym_load["p_specified"] = [[1e3, 2e3, 0]] 
+        self.asym_load["q_specified"] = [[0, 8e3, 2e3]] 
+        
+        ID_counter += len(self.asym_load["id"])
+
+        #Initialize Source array
+        source = initialize_array(DatasetType.input, ComponentType.source, len(self.source))
+        source["id"] = np.array([i + ID_counter for i in range(len(self.source))]) #id's of line, nodes, sources and trafo are not allowed to be the same.
+        source["node"] = source_to_node
+        source["status"] = np.ones(len(self.source))
+        source["u_ref"] = np.full(len(self.source), 1.0) 
+        
+        ID_counter += len(source["id"])
+
+
+        mv_lv_trafo_props = {
+            "u1" : 10000,
+            "u2" : 400,
+            "uk" : 0.025,
+            "pk" : 1.0e3,
+            "i0" : 1.0e-3,
+            "p0" : 0.1,
+            "winding_from" : 2,
+            "winding_to" : 1,
+            "clock" : 5,
+            "tap_side" : 0, #0 = high voltage side  
+            "tap_min" : 5,
+            "tap_nom" : 3,
+            "tap_max" : 1,
+            "tap_size" : 0.25 * 1.0e3,
+            "sn" : 4*1e6
+        }
+        #Initialize Transformer array
+        self.transformer = initialize_array(DatasetType.input, ComponentType.transformer, len(self.get_assets_of_type(assets, esdl.Transformer)))
+        self.transformer["id"] = np.array([i + ID_counter for i in range(len(self.transformer))])
+        self.transformer["from_node"] = node_to_trafo
+        self.transformer["to_node"] = trafo_to_node
+        self.transformer["from_status"] = np.ones(len(self.transformer))
+        self.transformer["to_status"] = np.ones(len(self.transformer))
+        self.transformer["u1"] = [x* 1000 for x in primary_voltage]
+        self.transformer["u2"] = [x* 1000 for x in secundary_voltage]
+        self.transformer["uk"] = mv_lv_trafo_props["uk"] 
+        self.transformer["pk"] = mv_lv_trafo_props["pk"] 
+        self.transformer["i0"] = mv_lv_trafo_props["i0"] 
+        self.transformer["p0"] = mv_lv_trafo_props["p0"] 
+        self.transformer["winding_from"] = mv_lv_trafo_props["winding_from"]
+        self.transformer["winding_to"] = mv_lv_trafo_props["winding_to"]
+        self.transformer["clock"] = mv_lv_trafo_props["clock"]
+        self.transformer["tap_side"] = mv_lv_trafo_props["tap_side"]
+        self.transformer["tap_min"] = mv_lv_trafo_props["tap_min"]
+        self.transformer["tap_nom"] = mv_lv_trafo_props["tap_nom"]
+        self.transformer["tap_max"] = mv_lv_trafo_props["tap_max"]
+        self.transformer["tap_size"] = mv_lv_trafo_props["tap_size"]
+        self.transformer["sn"] = mv_lv_trafo_props["sn"]
+
+
+        ID_counter += len(self.transformer["id"])
+
+        # shunt = initialize_array(DatasetType.input, ComponentType.shunt, 1)
+        # shunt["id"] = np.array([ID_counter])
+        # shunt["node"] = trafo_to_node
+        # shunt["g1"] = np.array([0.0])
+        # shunt["b1"] = np.array([0.0])
+        # shunt["g0"] = np.array([0.0])
+        # shunt["b0"] = np.array([1/7])
+        # shunt["status"] = np.array([1])
+
+        input_data = {
+            ComponentType.node: self.node,
+            ComponentType.asym_line: self.asym_line,
+            ComponentType.asym_load: self.asym_load,
+            ComponentType.source: source #,
+            #ComponentType.transformer: self.transformer,
+            #ComponentType.shunt: shunt
+        }
+        assert_valid_input_data(input_data=input_data, calculation_type=CalculationType.power_flow)
+
+        json_serialize_to_file(Path("Input_data.json"), input_data)
+        self.model = PowerGridModel(input_data)
+        #loadflowcalculation. symmetric must be false
+        self.do_load_flow()
+       
+
+ 
 
     def add_lv_networks_to_main_dss(self, assets : List[esdl.Asset], dss_circuit_properties : DssCircuitProperties):
         lines = []
@@ -482,7 +654,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def load_flow_current_step(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
         
-        self.set_load_flow_parameters(param_dict)
+        #self.set_load_flow_parameters(param_dict)
 
         self.do_load_flow()
 
@@ -527,52 +699,149 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
 
     def do_load_flow(self):
-        LOGGER.debug('OpenDSS solve loadflow calculation')
-        self.dss_engine.ActiveCircuit.Solution.Solve()
+        #LOGGER.debug('OpenDSS solve loadflow calculation')
+        self.output_data = self.model.calculate_power_flow(
+            symmetric=False, error_tolerance=1e-8, max_iterations=20, calculation_method=CalculationMethod.newton_raphson
+        ) 
 
-    def process_results(self) -> PowerFlowResult:
+        print(self.output_data)
+        # result dataset
+        print("------node voltage result------")
+        print(pd.DataFrame(self.output_data[ComponentType.node]["u"]))
+        print("------node angle result------")
+        print(pd.DataFrame(self.output_data[ComponentType.node]["u_angle"]))
+
+
+    def process_results(self) -> PowerFlowResult: #here the results from the numpy arrays must be filled in
         # Process results
-        BusVoltageMag = []
-        LineCurrentMag = []
-        LineCurrentAng = []
-        TotalLineCurrentMag = []
-        TotalLineCurrentLim = []
-        TransformerPower = []
-        TransformerPowerLim = []
+      
+        json_serialize_to_file(Path("output_data.json"), self.output_data)
 
-        # Phase voltage magnitudes for each bus:
-        LOGGER.debug('Extract voltages')
-        for i in range(len(self.dss_engine.ActiveCircuit.AllBusVmag)):
-            BusVoltageMag.append(round(self.dss_engine.ActiveCircuit.AllBusVmag[i], 2))
 
-        # Phase current magnitudes and angles for each line:
-        LOGGER.debug('Extract current magnitudes and angles')
-        for name in self.all_line_names:
-            self.dss_engine.ActiveCircuit.SetActiveElement(
-                'Line.{0}'.format(name))
-            Total_line_current = 0
-            for i in range(1, 4):
-                LineCurrentMag.append(
-                    round(self.dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2], 2))
-                LineCurrentAng.append(
-                    round(self.dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2 + 1], 2))
-                Total_line_current += round(self.dss_engine.ActiveCircuit.ActiveCktElement.CurrentsMagAng[(i - 1) * 2],
-                                            2)
-            TotalLineCurrentMag.append(Total_line_current)
-            TotalLineCurrentLim.append(float(self.dss_engine.ActiveCircuit.ActiveCktElement.NormalAmps))
+        # NODE RESULTS
 
-        # Apparent power for each transformer:
-        LOGGER.debug('Extract apparent power for each transformer')
-        self.dss_engine.ActiveCircuit.Transformers.First
-        for t in range(self.dss_engine.ActiveCircuit.Transformers.Count):
-            self.dss_engine.ActiveCircuit.SetActiveElement(
-                'Transformer.{0}'.format(self.dss_engine.ActiveCircuit.Transformers.AllNames[t]))
-            TransformerPower.append(round(math.sqrt(self.dss_engine.ActiveCircuit.ActiveElement.TotalPowers[0] ** 2 +
-                                                    self.dss_engine.ActiveCircuit.ActiveElement.TotalPowers[1] ** 2), 2))
-            TransformerPowerLim.append((self.dss_engine.ActiveCircuit.Transformers.kVA))
-            self.dss_engine.ActiveCircuit.Transformers.Next
+        node_res = self.output_data[ComponentType.node]
 
-        return PowerFlowResult(BusVoltageMag, TotalLineCurrentMag, TransformerPower, TotalLineCurrentLim, TransformerPowerLim)
+        BusVoltageMag = node_res["u"]
+        BusVoltageAng = node_res["u_angle"] * 180 / np.pi  # degrees
+
+        node_ids = node_res["id"]
+        node_id_to_index = {nid: i for i, nid in enumerate(node_ids)}
+
+        rows = []
+
+    
+        # LINE RESULTS
+ 
+        line_res = self.output_data[ComponentType.asym_line]
+
+        P_from = line_res["p_from"]
+        Q_from = line_res["q_from"]
+        I_from = line_res["i_from"]
+
+        P_to = line_res["p_to"]
+        Q_to = line_res["q_to"]
+        I_to = line_res["i_to"]
+
+        for k in range(len(self.asym_line)):
+            line_id = self.asym_line["id"][k]
+            from_node = self.asym_line["from_node"][k]
+            to_node   = self.asym_line["to_node"][k]
+
+            from_idx = node_id_to_index[from_node]
+            to_idx   = node_id_to_index[to_node]
+
+            row = {
+                "component_type": "line",
+                "component_id": line_id,
+                "from_node": from_node,
+                "to_node": to_node,
+            }
+
+            for ph in range(3):
+                S_from = P_from[k][ph] + 1j * Q_from[k][ph]
+                S_to   = P_to[k][ph]   + 1j * Q_to[k][ph]
+
+                # angles in DEGREES
+                S_angle_from = np.angle(S_from) * 180 / np.pi
+                S_angle_to   = np.angle(S_to)   * 180 / np.pi
+
+                i_angle_from = BusVoltageAng[from_idx][ph] - S_angle_from
+                i_angle_to   = BusVoltageAng[to_idx][ph]   - S_angle_to
+
+                row.update({
+                    f"U{ph+1}_from": BusVoltageMag[from_idx][ph],
+                    f"U{ph+1}_from_angle": BusVoltageAng[from_idx][ph],
+                    f"U{ph+1}_to": BusVoltageMag[to_idx][ph],
+                    f"U{ph+1}_to_angle": BusVoltageAng[to_idx][ph],
+
+                    f"I{ph+1}_from": I_from[k][ph],
+                    f"I{ph+1}_from_angle": i_angle_from,
+                    f"I{ph+1}_to": I_to[k][ph],
+                    f"I{ph+1}_to_angle": i_angle_to,
+
+                    f"P{ph+1}_from": P_from[k][ph],
+                    f"P{ph+1}_to": P_to[k][ph],
+                    f"Q{ph+1}_from": Q_from[k][ph],
+                    f"Q{ph+1}_to": Q_to[k][ph],
+                })
+
+            rows.append(row)
+
+        # LOAD RESULTS
+
+        load_res = self.output_data[ComponentType.asym_load]
+
+        P_load = load_res["p"]
+        Q_load = load_res["q"]
+        I_load = load_res["i"]
+
+        for k in range(len(self.asym_load)):
+            load_id = self.asym_load["id"][k]
+            node_id = self.asym_load["node"][k]
+
+            node_idx = node_id_to_index[node_id]
+
+            row = {
+                "component_type": "load",
+                "component_id": load_id,
+                "from_node": node_id,
+                "to_node": None,
+            }
+
+            for ph in range(3):
+                S = P_load[k][ph] + 1j * Q_load[k][ph]
+                S_angle = np.angle(S) * 180 / np.pi
+
+                i_angle = BusVoltageAng[node_idx][ph] - S_angle
+
+                row.update({
+                    f"U{ph+1}_from": BusVoltageMag[node_idx][ph],
+                    f"U{ph+1}_from_angle": BusVoltageAng[node_idx][ph],
+
+                    f"I{ph+1}_from": I_load[k][ph],
+                    f"I{ph+1}_from_angle": i_angle,
+
+                    f"P{ph+1}_from": P_load[k][ph],
+                    f"Q{ph+1}_from": Q_load[k][ph],
+
+                    f"U{ph+1}_to": np.nan,
+                    f"U{ph+1}_to_angle": np.nan,
+                    f"I{ph+1}_to": np.nan,
+                    f"I{ph+1}_to_angle": np.nan,
+                    f"P{ph+1}_to": np.nan,
+                    f"Q{ph+1}_to": np.nan,
+                })
+
+            rows.append(row)
+
+        df = pd.DataFrame(rows)
+        df.to_excel("NetworkResults.xlsx", index=False)
+
+
+ 
+
+        return PowerFlowResult(BusVoltageAng, BusVoltageMag)
 
     def write_results_to_influx(self, esdl_id : EsdlId, simulation_time : datetime, power_flow_result : PowerFlowResult):
         # Write results to influxdb

@@ -11,6 +11,7 @@ from dots_infrastructure.Logger import LOGGER
 from esdl import EnergySystem
 import networkx as nx
 import dss
+from dss import SolutionAlgorithms
 import math
 from dataclasses import dataclass
 
@@ -94,18 +95,18 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                         cable.length) + ' Units=m \n'
         return dss_cable
 
-    def add_mv_network_to_main_dss(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
+    def add_mv_network_to_main_dss(self, assets : List[esdl.Asset], lines_to_write : List[str]):
 
-        self.add_mv_lines(assets, lines_to_write)
+        added_mv_lines = self.add_mv_lines(assets, lines_to_write)
 
         with open(self.dss_file_name, "w") as f:
             f.writelines(lines_to_write)
 
         lines_to_write.clear()
 
-        self.dss_engine.Text.Command = f"compile {self.dss_file_name}"
-
-        self.cut_cable_in_mv_network(self.dss_file_name)
+        if added_mv_lines:
+            self.dss_engine.Text.Command = f"compile {self.dss_file_name}"
+            self.cut_cable_in_mv_network(self.dss_file_name)
     
     def build_base_dss_file(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
         lines_to_write.append('Clear \n')
@@ -116,21 +117,26 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         return dss_circuit_properties
 
-    def add_mv_lines(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
+    def add_mv_lines(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> bool:
         lines_to_write.append('\n! LineCodes \n')
         lines_to_write.append('Redirect LineCode.dss \n')
         lines_to_write.append('\n')
         lines_to_write.append(self.lines_section_start_marker)
 
-        for a in self.get_assets_of_type(assets, esdl.ElectricityCable):
+        cables = self.get_assets_of_type(assets, esdl.ElectricityCable)
+        added_mv_lines = False
+        for a in cables:
             if "mv_cable" in a.name.lower():
                 for port in a.port:
                     if isinstance(port, esdl.InPort):
+                        LOGGER.info(a.name)
                         bus_from = port.connectedTo[0].energyasset
                     else:
                         bus_to = port.connectedTo[0].energyasset
                 dss_cable = self.generate_dss_electricity_cable(a, bus_from, bus_to, False)
                 lines_to_write.append(dss_cable)
+                added_mv_lines = True
+        return added_mv_lines
 
 
     def remove_cable_from_dss_file(self, joint_name1 : str, joint_name2 : str, file_name : str):
@@ -375,12 +381,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                     reactive_load = param_dict[f'EConnection/aggregated_reactive_power/{id}'][i] * 1e-3
                     if active_ckt_element.AllPropertyNames[property_mapping["kW"]] != "kW" or active_ckt_element.AllPropertyNames[property_mapping["kvar"]] != "kvar":
                         raise ValueError("Property mapping for kW or kvar is incorrect")
-                    active_ckt_element.Properties[property_mapping["kW"]].Val = active_load
-                    active_ckt_element.Properties[property_mapping["kvar"]].Val = reactive_load
+                    active_ckt_element.Properties[property_mapping["kW"]].Val = str(active_load)
+                    active_ckt_element.Properties[property_mapping["kvar"]].Val = str(reactive_load)
 
 
     def do_load_flow(self):
         LOGGER.debug('OpenDSS solve loadflow calculation')
+        self.dss_engine.ActiveCircuit.Solution.Algorithm = SolutionAlgorithms.NCIMSolve
         self.dss_engine.ActiveCircuit.Solution.Solve()
 
     def process_results(self) -> PowerFlowResult:

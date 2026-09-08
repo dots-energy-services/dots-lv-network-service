@@ -147,6 +147,23 @@ class Test(unittest.TestCase):
                 self.assertAlmostEqual(data_point.value, data_points_expected_values[data_point.output_name], delta=1e-1)
 
 
+    def test_congestion_signal_is_determined_correctly(self):
+        # Arrange
+        service, energy_system = self.int_service_and_get_energy_system("test.esdl")
+
+        params = {}
+        econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
+        for econnection in econnections:
+            params[f"EConnection/predicted_aggregated_active_power/{econnection.id}"] = [100000, 100000, 100000]
+            params[f"EConnection/predicted_aggregated_reactive_power/{econnection.id}"] = [0, 0, 0]
+
+        # Execute
+        ret_val = service.determine_congestion(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
+                                                 energy_system)
+
+        self.assertTrue(ret_val["congestion_signal"])
+
+
 
 if __name__ == '__main__':
     unittest.main()

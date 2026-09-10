@@ -79,7 +79,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                                     input_type=h.HelicsDataType.VECTOR),
             SubscriptionDescription(esdl_type="EConnection", 
                                     input_name="predicted_aggregated_reactive_power", 
-                                    input_unit="W", 
+                                    input_unit="VAr", 
                                     input_type=h.HelicsDataType.VECTOR),
         ]
         determine_congestion_outputs = [
@@ -87,8 +87,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             PublicationDescription(global_flag=True, 
                                     esdl_type="EnergySystem",
                                     output_name="congestion_signal",
-                                    output_unit="", 
-                                    data_type=h.HelicsDataType.BOOLEAN),
+                                    output_unit="KW", 
+                                    data_type=h.HelicsDataType.DOUBLE),
         ]
         determine_congestion_information = HelicsCalculationInformation(
             time_period_in_seconds=900,
@@ -503,7 +503,12 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         congestion_active = any(limit < loading for limit, loading in zip(results.transformer_power_lim, results.transformer_power))
 
         ret_val = {}
-        ret_val["congestion_signal"] = congestion_active
+        if congestion_active:
+            power_factor = 0.95
+            ret_val["congestion_signal"] = (0.9 * results.transformer_power_lim[0] * power_factor) / len(self.ems_list)
+            LOGGER.debug(f"Congestion Signal: {ret_val["congestion_signal"]}")
+        else:
+            ret_val["congestion_signal"] = 0.0
 
         return ret_val
 

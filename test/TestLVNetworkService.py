@@ -161,7 +161,7 @@ class Test(unittest.TestCase):
         ret_val = service.determine_congestion(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
                                                  energy_system)
 
-        self.assertTrue(ret_val["congestion_signal"])
+        self.assertNotEqual(ret_val["congestion_signal"], 0)
 
 
 

@@ -122,7 +122,8 @@ class Test(unittest.TestCase):
 
     def test_correct_values_are_written_to_the_correct_fields(self):
         # Arrange
-        service, energy_system = self.int_service_and_get_energy_system("test.esdl")
+        test_path = str(Path(__file__).parent / "test.esdl")
+        service, energy_system = self.int_service_and_get_energy_system(test_path)
 
         params = {}
         econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
@@ -149,7 +150,8 @@ class Test(unittest.TestCase):
 
     def test_congestion_signal_is_determined_correctly(self):
         # Arrange
-        service, energy_system = self.int_service_and_get_energy_system("test.esdl")
+        test_path = str(Path(__file__).parent / "test.esdl")
+        service, energy_system = self.int_service_and_get_energy_system(test_path)
 
         params = {}
         econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
@@ -162,6 +164,24 @@ class Test(unittest.TestCase):
                                                  energy_system)
 
         self.assertNotEqual(ret_val["congestion_signal"], 0)
+
+    
+    def test_when_congestion_managment_inactive_signal_is_zero(self):
+        # Arrange
+        test_path = str(Path(__file__).parent / "test_congestion_inactive.esdl")
+        service, energy_system = self.int_service_and_get_energy_system(test_path)
+
+        params = {}
+        econnections = [asset for asset in energy_system.eAllContents() if isinstance(asset, EConnection)]
+        for econnection in econnections:
+            params[f"EConnection/predicted_aggregated_active_power/{econnection.id}"] = [100000, 100000, 100000]
+            params[f"EConnection/predicted_aggregated_reactive_power/{econnection.id}"] = [0, 0, 0]
+
+        # Execute
+        ret_val = service.determine_congestion(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
+                                                 energy_system)
+
+        self.assertEqual(ret_val["congestion_signal"], 0)
 
 
 

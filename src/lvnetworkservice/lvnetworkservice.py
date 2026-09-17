@@ -118,6 +118,11 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         self.all_node_names = self.dss_engine.ActiveCircuit.AllNodeNames
         self.all_line_names = self.dss_engine.ActiveCircuit.Lines.AllNames
         self.all_transformer_names = self.dss_engine.ActiveCircuit.Transformers.AllNames
+        self.congestion_management_active = False
+        if energy_system.measures != None:
+            for measure in energy_system.measures.measure:
+                if measure.name == 'congestion_management_active' and measure.description == 'True':
+                    self.congestion_management_active = True
 
     def generate_dss_electricity_cable(self, cable : esdl.ElectricityCable, bus_from : esdl.Joint, bus_to : esdl.Joint, include_ground = True):
         phases_specifications = '.1.2.3.4' if include_ground else '.1.2.3'
@@ -495,20 +500,23 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                                                           power_flow_result.transformer_power_lim[d])
 
     def determine_congestion(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
-        self.set_load_flow_parameters(param_dict, 'EConnection/predicted_aggregated_active_power', 'EConnection/predicted_aggregated_reactive_power')
-
-        self.do_load_flow()
-
-        results = self.process_results()
-        congestion_active = any(limit < loading for limit, loading in zip(results.transformer_power_lim, results.transformer_power))
 
         ret_val = {}
-        if congestion_active:
-            power_factor = 0.95
-            ret_val["congestion_signal"] = (0.9 * results.transformer_power_lim[0] * power_factor) / len(self.ems_list)
-            LOGGER.debug(f"Congestion Signal: {ret_val["congestion_signal"]}")
-        else:
-            ret_val["congestion_signal"] = 0.0
+        ret_val["congestion_signal"] = 0.0
+
+        if self.congestion_management_active:
+            self.set_load_flow_parameters(param_dict, 'EConnection/predicted_aggregated_active_power', 'EConnection/predicted_aggregated_reactive_power')
+
+            self.do_load_flow()
+    
+            results = self.process_results()
+            congestion_active = any(limit < loading for limit, loading in zip(results.transformer_power_lim, results.transformer_power))
+
+            if congestion_active:
+                power_factor = 0.95
+                ret_val["congestion_signal"] = (0.9 * results.transformer_power_lim[0] * power_factor) / len(self.ems_list)
+                LOGGER.debug(f"Congestion Signal: {ret_val["congestion_signal"]}")
+
 
         return ret_val
 

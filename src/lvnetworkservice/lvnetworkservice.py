@@ -69,6 +69,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         self.all_line_names : List[str] = []
         self.all_transformer_names : List[str] = []
         self.dss_file_name = "main.dss"
+        self.congestion_signal = 0.0
         
         self.determine_congestion_period_seconds = 900
         determine_congestion_inputs = [

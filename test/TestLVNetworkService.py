@@ -163,7 +163,7 @@ class Test(unittest.TestCase):
         ret_val = service.determine_congestion(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
                                                  energy_system)
 
-        self.assertNotEqual(ret_val["congestion_signal"], 0)
+        self.assertNotEqual(service.congestion_signal, 0)
 
     
     def test_when_congestion_managment_inactive_signal_is_zero(self):
@@ -181,7 +181,7 @@ class Test(unittest.TestCase):
         ret_val = service.determine_congestion(params, datetime(2024, 1, 1), TimeStepInformation(1, 2), "test-id",
                                                  energy_system)
 
-        self.assertEqual(ret_val["congestion_signal"], 0)
+        self.assertEqual(service.congestion_signal, 0)
 
 
 

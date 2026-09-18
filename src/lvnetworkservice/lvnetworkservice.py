@@ -82,14 +82,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                                     input_unit="VAr", 
                                     input_type=h.HelicsDataType.VECTOR),
         ]
-        determine_congestion_outputs = [
         
-            PublicationDescription(global_flag=True, 
-                                    esdl_type="EnergySystem",
-                                    output_name="congestion_signal",
-                                    output_unit="KW", 
-                                    data_type=h.HelicsDataType.DOUBLE),
-        ]
         determine_congestion_information = HelicsCalculationInformation(
             time_period_in_seconds=900,
             offset=0, 
@@ -98,10 +91,31 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             terminate_on_error=True, 
             calculation_name="determine_congestion", 
             inputs=determine_congestion_inputs, 
-            outputs=determine_congestion_outputs, 
+            outputs=[], 
             calculation_function=self.determine_congestion
         )
         self.add_calculation(determine_congestion_information)
+
+        determine_congestion_outputs = [
+            PublicationDescription(global_flag=True, 
+                                    esdl_type="EnergySystem",
+                                    output_name="congestion_signal",
+                                    output_unit="KW", 
+                                    data_type=h.HelicsDataType.DOUBLE),
+        ]
+
+        send_congestion_signal = HelicsCalculationInformation(
+            time_period_in_seconds=900,
+            offset=0, 
+            uninterruptible=False, 
+            wait_for_current_time_update=False, 
+            terminate_on_error=True, 
+            calculation_name="send_congestion_signal", 
+            inputs=[], 
+            outputs=determine_congestion_outputs, 
+            calculation_function=self.send_congestion_signal
+        )
+        self.add_calculation(send_congestion_signal)
 
     def get_assets_of_type(self, assets : List[esdl.Asset], type):
         return [a for a in assets if isinstance(a, type)]
@@ -501,8 +515,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def determine_congestion(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
 
-        ret_val = {}
-        ret_val["congestion_signal"] = 0.0
+        self.congestion_signal = 0.0
 
         if self.congestion_management_active:
             self.set_load_flow_parameters(param_dict, 'EConnection/predicted_aggregated_active_power', 'EConnection/predicted_aggregated_reactive_power')
@@ -514,10 +527,14 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
             if congestion_active:
                 power_factor = 0.95
-                ret_val["congestion_signal"] = (0.9 * results.transformer_power_lim[0] * power_factor) / len(self.ems_list)
-                LOGGER.debug(f"Congestion Signal: {ret_val["congestion_signal"]}")
+                self.congestion_signal = (0.9 * results.transformer_power_lim[0] * power_factor) / len(self.ems_list)
+                LOGGER.debug(f"Congestion Signal: {self.congestion_signal}")
 
 
+    def send_congestion_signal(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
+        ret_val = {}
+        LOGGER.debug(f"Sending congestion Signal: {self.congestion_signal}")
+        ret_val['congestion_signal'] = self.congestion_signal
         return ret_val
 
 if __name__ == "__main__":

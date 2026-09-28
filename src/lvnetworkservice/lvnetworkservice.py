@@ -427,8 +427,12 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                     reactive_load = param_dict[f'{reactive_power_input_name}/{id}'][i] * 1e-3
                     if active_ckt_element.AllPropertyNames[property_mapping["kW"]] != "kW" or active_ckt_element.AllPropertyNames[property_mapping["kvar"]] != "kvar":
                         raise ValueError("Property mapping for kW or kvar is incorrect")
-                    active_ckt_element.Properties[property_mapping["kW"]].Val = str(active_load)
-                    active_ckt_element.Properties[property_mapping["kvar"]].Val = str(reactive_load)
+                    eps = 1.0e-6
+                    if -eps <= active_load <= eps:
+                        active_ckt_element.Properties[property_mapping["kW"]].Val = str(0.001)
+                    else:
+                        active_ckt_element.Properties[property_mapping["kW"]].Val = str(active_load)
+                        active_ckt_element.Properties[property_mapping["kvar"]].Val = str(reactive_load)
 
 
     def do_load_flow(self):

@@ -328,20 +328,12 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             e_connection = self.get_assets_of_type(a.asset, esdl.EConnection)[0]
             self.ems_list[e_connection.id] = []
             name = e_connection.name
-            for electricity_demand in self.get_assets_of_type(a.asset, esdl.ElectricityDemand):
+            for i, electricity_network in enumerate(self.get_assets_of_type(a.asset, esdl.ElectricityNetwork)):
                 # van 10 kv naar 0.4 kv basen
+                phase = i + 1
                 lines.append(
-                    'New Load.{name}_Ph1 Bus1={bus}.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n'.format(
-                        name=name, bus=name))
-                lines.append(
-                    'New Load.{name}_Ph2 Bus1={bus}.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n'.format(
-                        name=name, bus=name))
-                lines.append(
-                    'New Load.{name}_Ph3 Bus1={bus}.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n'.format(
-                        name=name, bus=name))
-                self.ems_list[e_connection.id].append(f"Load.{name}_Ph1")
-                self.ems_list[e_connection.id].append(f"Load.{name}_Ph2")
-                self.ems_list[e_connection.id].append(f"Load.{name}_Ph3")
+                    f'New Load.{name}_Ph{phase} Bus1={name}.{phase}.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n')
+                self.ems_list[e_connection.id].append(f"Load.{name}_Ph{phase}")
 
     def generate_trafos(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
         lines_to_write.append('\n! Trafo XFMRCodes \n')
@@ -416,6 +408,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         LOGGER.debug('OpenDSS add loads to network')
 
+        LOGGER.info(self.ems_list)
         self.dss_engine.ActiveCircuit.SetActiveElement(f"{self.ems_list[list(self.ems_list.keys())[0]][0]}")
         property_mapping : dict [str, int] = {
             "kW" : 0,

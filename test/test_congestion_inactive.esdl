@@ -884,7 +884,7 @@
         <fixedOperationalAndMaintenanceCosts xsi:type ="esdl:SingleValue" id="0ac9598c-5e71-49fe-940d-d039c8b64be3" name="low_bandwidth_price" value="1.0"/>
       </costInformation>
     </measure>
-    <measure xsi:type="esdl:Measure" id="e46ed4ce-dfb9-4c11-9e44-023411b117a1" name="congestion_management_active" description="True"/>
+    <measure xsi:type="esdl:Measure" id="e46ed4ce-dfb9-4c11-9e44-023411b117a1" name="congestion_management_active" description="False"/>
   </measures>
   <instance xsi:type="esdl:Instance" id="539b8f85-8f6a-4486-b966-4cc15bb17b34" name="Instance name">
     <area xsi:type="esdl:Area" name="Area name" id="ea5a1a30-4b2f-4721-8d5e-fc36147a74df">

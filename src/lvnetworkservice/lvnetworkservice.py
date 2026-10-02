@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from pathlib import Path
+import threading
 import time
 from typing import List
 from esdl import esdl
 import helics as h
-from dots_infrastructure.DataClasses import EsdlId, HelicsCalculationInformation, SubscriptionDescription, TimeStepInformation
+from dots_infrastructure.DataClasses import EsdlId, HelicsCalculationInformation, PublicationDescription, SubscriptionDescription, TimeStepInformation
 from dots_infrastructure.HelicsFederateHelpers import HelicsSimulationExecutor
 from dots_infrastructure.Logger import LOGGER
 from esdl import EnergySystem
 import networkx as nx
 import dss
+from dss import SolutionAlgorithms
 import math
 from dataclasses import dataclass
 
@@ -33,6 +35,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def __init__(self):
         super().__init__()
+
+        self.load_flow_lock = threading.Lock()
 
         subscriptions_values = [
             SubscriptionDescription(esdl_type="EConnection",
@@ -68,6 +72,54 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         self.all_line_names : List[str] = []
         self.all_transformer_names : List[str] = []
         self.dss_file_name = "main.dss"
+        self.congestion_signal = 0.0
+        
+        self.determine_congestion_period_seconds = 900
+        determine_congestion_inputs = [
+        
+            SubscriptionDescription(esdl_type="EConnection", 
+                                    input_name="predicted_aggregated_active_power", 
+                                    input_unit="W", 
+                                    input_type=h.HelicsDataType.VECTOR),
+            SubscriptionDescription(esdl_type="EConnection", 
+                                    input_name="predicted_aggregated_reactive_power", 
+                                    input_unit="VAr", 
+                                    input_type=h.HelicsDataType.VECTOR),
+        ]
+        
+        determine_congestion_information = HelicsCalculationInformation(
+            time_period_in_seconds=900,
+            offset=0, 
+            uninterruptible=False, 
+            wait_for_current_time_update=False, 
+            terminate_on_error=True, 
+            calculation_name="determine_congestion", 
+            inputs=determine_congestion_inputs, 
+            outputs=[], 
+            calculation_function=self.determine_congestion
+        )
+        self.add_calculation(determine_congestion_information)
+
+        determine_congestion_outputs = [
+            PublicationDescription(global_flag=True, 
+                                    esdl_type="EnergySystem",
+                                    output_name="congestion_signal",
+                                    output_unit="KW", 
+                                    data_type=h.HelicsDataType.DOUBLE),
+        ]
+
+        send_congestion_signal = HelicsCalculationInformation(
+            time_period_in_seconds=900,
+            offset=0, 
+            uninterruptible=False, 
+            wait_for_current_time_update=False, 
+            terminate_on_error=True, 
+            calculation_name="send_congestion_signal", 
+            inputs=[], 
+            outputs=determine_congestion_outputs, 
+            calculation_function=self.send_congestion_signal
+        )
+        self.add_calculation(send_congestion_signal)
 
     def get_assets_of_type(self, assets : List[esdl.Asset], type):
         return [a for a in assets if isinstance(a, type)]
@@ -84,6 +136,11 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         self.all_node_names = self.dss_engine.ActiveCircuit.AllNodeNames
         self.all_line_names = self.dss_engine.ActiveCircuit.Lines.AllNames
         self.all_transformer_names = self.dss_engine.ActiveCircuit.Transformers.AllNames
+        self.congestion_management_active = False
+        if energy_system.measures != None:
+            for measure in energy_system.measures.measure:
+                if measure.name == 'congestion_management_active' and measure.description == 'True':
+                    self.congestion_management_active = True
 
     def generate_dss_electricity_cable(self, cable : esdl.ElectricityCable, bus_from : esdl.Joint, bus_to : esdl.Joint, include_ground = True):
         phases_specifications = '.1.2.3.4' if include_ground else '.1.2.3'
@@ -94,18 +151,18 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                         cable.length) + ' Units=m \n'
         return dss_cable
 
-    def add_mv_network_to_main_dss(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
+    def add_mv_network_to_main_dss(self, assets : List[esdl.Asset], lines_to_write : List[str]):
 
-        self.add_mv_lines(assets, lines_to_write)
+        added_mv_lines = self.add_mv_lines(assets, lines_to_write)
 
         with open(self.dss_file_name, "w") as f:
             f.writelines(lines_to_write)
 
         lines_to_write.clear()
 
-        self.dss_engine.Text.Command = f"compile {self.dss_file_name}"
-
-        self.cut_cable_in_mv_network(self.dss_file_name)
+        if added_mv_lines:
+            self.dss_engine.Text.Command = f"compile {self.dss_file_name}"
+            self.cut_cable_in_mv_network(self.dss_file_name)
     
     def build_base_dss_file(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
         lines_to_write.append('Clear \n')
@@ -116,21 +173,26 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
         return dss_circuit_properties
 
-    def add_mv_lines(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
+    def add_mv_lines(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> bool:
         lines_to_write.append('\n! LineCodes \n')
         lines_to_write.append('Redirect LineCode.dss \n')
         lines_to_write.append('\n')
         lines_to_write.append(self.lines_section_start_marker)
 
-        for a in self.get_assets_of_type(assets, esdl.ElectricityCable):
+        cables = self.get_assets_of_type(assets, esdl.ElectricityCable)
+        added_mv_lines = False
+        for a in cables:
             if "mv_cable" in a.name.lower():
                 for port in a.port:
                     if isinstance(port, esdl.InPort):
+                        LOGGER.info(a.name)
                         bus_from = port.connectedTo[0].energyasset
                     else:
                         bus_to = port.connectedTo[0].energyasset
                 dss_cable = self.generate_dss_electricity_cable(a, bus_from, bus_to, False)
                 lines_to_write.append(dss_cable)
+                added_mv_lines = True
+        return added_mv_lines
 
 
     def remove_cable_from_dss_file(self, joint_name1 : str, joint_name2 : str, file_name : str):
@@ -269,20 +331,12 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             e_connection = self.get_assets_of_type(a.asset, esdl.EConnection)[0]
             self.ems_list[e_connection.id] = []
             name = e_connection.name
-            for electricity_demand in self.get_assets_of_type(a.asset, esdl.ElectricityDemand):
+            for i, electricity_network in enumerate(self.get_assets_of_type(a.asset, esdl.ElectricityNetwork)):
                 # van 10 kv naar 0.4 kv basen
+                phase = i + 1
                 lines.append(
-                    'New Load.{name}_Ph1 Bus1={bus}.1.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n'.format(
-                        name=name, bus=name))
-                lines.append(
-                    'New Load.{name}_Ph2 Bus1={bus}.2.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n'.format(
-                        name=name, bus=name))
-                lines.append(
-                    'New Load.{name}_Ph3 Bus1={bus}.3.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n'.format(
-                        name=name, bus=name))
-                self.ems_list[e_connection.id].append(f"Load.{name}_Ph1")
-                self.ems_list[e_connection.id].append(f"Load.{name}_Ph2")
-                self.ems_list[e_connection.id].append(f"Load.{name}_Ph3")
+                    f'New Load.{name}_Ph{phase} Bus1={name}.{phase}.4 Phases=1 Conn=wye Model=1 kV=0.23 kW=1 kvar=0.0 \n')
+                self.ems_list[e_connection.id].append(f"Load.{name}_Ph{phase}")
 
     def generate_trafos(self, assets : List[esdl.Asset], lines_to_write : List[str]) -> DssCircuitProperties:
         lines_to_write.append('\n! Trafo XFMRCodes \n')
@@ -334,29 +388,20 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
 
     def load_flow_current_step(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
-        
-        self.set_load_flow_parameters(param_dict)
 
-        self.do_load_flow()
-
-        start = time.time()
-        results = self.process_results()
-        end = time.time()
-        LOGGER.info(f"Processing results took {end - start} seconds")
-        start = time.time()
+        results = self.execute_load_flow_and_return_results(param_dict, 'EConnection/aggregated_active_power', 'EConnection/aggregated_reactive_power')
         self.write_results_to_influx(esdl_id, simulation_time, results)
-        end = time.time()
-        LOGGER.info(f"Writing results took {end - start} seconds")
 
         return {}
 
 
-    def set_load_flow_parameters(self, param_dict : dict):
+    def set_load_flow_parameters(self, param_dict : dict, active_power_input_name : str, reactive_power_input_name : str):
         # START user calc
-        LOGGER.info("calculation 'load_flow_current_step' started")     
+        LOGGER.info("calculation 'load_flow_current_step' started")
 
         LOGGER.debug('OpenDSS add loads to network')
 
+        LOGGER.info(self.ems_list)
         self.dss_engine.ActiveCircuit.SetActiveElement(f"{self.ems_list[list(self.ems_list.keys())[0]][0]}")
         property_mapping : dict [str, int] = {
             "kW" : 0,
@@ -366,22 +411,34 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
             if prop_name in property_mapping:
                 property_mapping[prop_name] = i
         for id in self.ems_list:
-            num_phases = len(param_dict[f'EConnection/aggregated_active_power/{id}'])
+            num_phases = len(param_dict[f'{active_power_input_name}/{id}'])
             for i, name in enumerate(self.ems_list[id]):
                 if i < num_phases:
                     self.dss_engine.ActiveCircuit.SetActiveElement(name)
                     active_ckt_element = self.dss_engine.ActiveCircuit.ActiveCktElement
-                    active_load = param_dict[f'EConnection/aggregated_active_power/{id}'][i] * 1e-3
-                    reactive_load = param_dict[f'EConnection/aggregated_reactive_power/{id}'][i] * 1e-3
+                    active_load = param_dict[f'{active_power_input_name}/{id}'][i] * 1e-3
+                    reactive_load = param_dict[f'{reactive_power_input_name}/{id}'][i] * 1e-3
                     if active_ckt_element.AllPropertyNames[property_mapping["kW"]] != "kW" or active_ckt_element.AllPropertyNames[property_mapping["kvar"]] != "kvar":
                         raise ValueError("Property mapping for kW or kvar is incorrect")
-                    active_ckt_element.Properties[property_mapping["kW"]].Val = active_load
-                    active_ckt_element.Properties[property_mapping["kvar"]].Val = reactive_load
+                    eps = 1.0e-6
+                    if -eps <= active_load <= eps:
+                        active_ckt_element.Properties[property_mapping["kW"]].Val = str(0.001)
+                    else:
+                        active_ckt_element.Properties[property_mapping["kW"]].Val = str(active_load)
+                        active_ckt_element.Properties[property_mapping["kvar"]].Val = str(reactive_load)
 
 
     def do_load_flow(self):
         LOGGER.debug('OpenDSS solve loadflow calculation')
+        self.dss_engine.ActiveCircuit.Solution.Algorithm = SolutionAlgorithms.NCIMSolve
         self.dss_engine.ActiveCircuit.Solution.Solve()
+
+    def execute_load_flow_and_return_results(self, param_dict, active_power_param_name, reactive_power_param_name) -> PowerFlowResult:
+        with self.load_flow_lock:
+            self.set_load_flow_parameters(param_dict, active_power_param_name, reactive_power_param_name)
+            self.do_load_flow()
+            results = self.process_results()
+        return results
 
     def process_results(self) -> PowerFlowResult:
         # Process results
@@ -453,6 +510,26 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                                                           simulation_time, power_flow_result.transformer_power[d])
             self.influx_connector.set_time_step_data_point(esdl_id, f"{name}_limit", simulation_time,
                                                           power_flow_result.transformer_power_lim[d])
+
+    def determine_congestion(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
+
+        self.congestion_signal = 0.0
+
+        if self.congestion_management_active:
+            results = self.execute_load_flow_and_return_results(param_dict, 'EConnection/predicted_aggregated_active_power', 'EConnection/predicted_aggregated_reactive_power')
+            congestion_active = any(limit < loading for limit, loading in zip(results.transformer_power_lim, results.transformer_power))
+
+            if congestion_active:
+                power_factor = 0.95
+                self.congestion_signal = (0.9 * results.transformer_power_lim[0] * power_factor) / len(self.ems_list)
+                LOGGER.debug(f"Congestion Signal: {self.congestion_signal}")
+
+
+    def send_congestion_signal(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
+        ret_val = {}
+        LOGGER.debug(f"Sending congestion Signal: {self.congestion_signal}")
+        ret_val['congestion_signal'] = self.congestion_signal
+        return ret_val
 
 if __name__ == "__main__":
     helics_simulation_executor = CalculationServiceLVNetwork()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from pathlib import Path
+import threading
 import time
 from typing import List
 from esdl import esdl
@@ -34,6 +35,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def __init__(self):
         super().__init__()
+
+        self.load_flow_lock = threading.Lock()
 
         subscriptions_values = [
             SubscriptionDescription(esdl_type="EConnection",
@@ -386,18 +389,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
 
     def load_flow_current_step(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
 
-        self.set_load_flow_parameters(param_dict, 'EConnection/aggregated_active_power', 'EConnection/aggregated_reactive_power')
-
-        self.do_load_flow()
-
-        start = time.time()
-        results = self.process_results()
-        end = time.time()
-        LOGGER.info(f"Processing results took {end - start} seconds")
-        start = time.time()
+        results = self.execute_load_flow_and_return_results(param_dict, 'EConnection/aggregated_active_power', 'EConnection/aggregated_reactive_power')
         self.write_results_to_influx(esdl_id, simulation_time, results)
-        end = time.time()
-        LOGGER.info(f"Writing results took {end - start} seconds")
 
         return {}
 
@@ -439,6 +432,13 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         LOGGER.debug('OpenDSS solve loadflow calculation')
         self.dss_engine.ActiveCircuit.Solution.Algorithm = SolutionAlgorithms.NCIMSolve
         self.dss_engine.ActiveCircuit.Solution.Solve()
+
+    def execute_load_flow_and_return_results(self, param_dict, active_power_param_name, reactive_power_param_name) -> PowerFlowResult:
+        with self.load_flow_lock:
+            self.set_load_flow_parameters(param_dict, active_power_param_name, reactive_power_param_name)
+            self.do_load_flow()
+            results = self.process_results()
+        return results
 
     def process_results(self) -> PowerFlowResult:
         # Process results
@@ -516,11 +516,7 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
         self.congestion_signal = 0.0
 
         if self.congestion_management_active:
-            self.set_load_flow_parameters(param_dict, 'EConnection/predicted_aggregated_active_power', 'EConnection/predicted_aggregated_reactive_power')
-
-            self.do_load_flow()
-    
-            results = self.process_results()
+            results = self.execute_load_flow_and_return_results(param_dict, 'EConnection/predicted_aggregated_active_power', 'EConnection/predicted_aggregated_reactive_power')
             congestion_active = any(limit < loading for limit, loading in zip(results.transformer_power_lim, results.transformer_power))
 
             if congestion_active:

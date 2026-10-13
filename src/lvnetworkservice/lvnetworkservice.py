@@ -524,6 +524,8 @@ class CalculationServiceLVNetwork(HelicsSimulationExecutor):
                 self.congestion_signal = (0.9 * results.transformer_power_lim[0] * power_factor) / len(self.ems_list)
                 LOGGER.debug(f"Congestion Signal: {self.congestion_signal}")
 
+        self.influx_connector.set_time_step_data_point(esdl_id, "congestion_signal", simulation_time, self.congestion_signal)
+
 
     def send_congestion_signal(self, param_dict : dict, simulation_time : datetime, time_step_number : TimeStepInformation, esdl_id : EsdlId, energy_system : EnergySystem):
         ret_val = {}

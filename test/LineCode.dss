@@ -801,5 +801,6 @@ New   LineCode.VO_VMvKhas_4x50_Cu_4x6 nphases=4 C1=0.308 C0=0.18 Normamps=216.0 
 New   LineCode.Link nphases=4 C1=0 C0=0 Units=km
 ~ Rmatrix = [ 0.00001 |0 0.00001 |0 0 0.0001 |0 0 0 0.00001]
 ~ Xmatrix = [ 0.00001 |0 0.00001 |0 0 0.0001 |0 0 0 0.00001]
+New   LineCode.mv_line nphases=3 Normamps=150 R1=0.822 X1=0.089 R0=1.541 X0=0.1 C1=0.24 C0=0.24 Units=km
 
 
